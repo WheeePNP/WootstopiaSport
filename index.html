@@ -618,7 +618,7 @@ Wages: RM70/day"></textarea>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script>
 /* ================= CONFIG ================= */
-// https://script.google.com/macros/s/AKfycby8PBuYFGktGAs7VCf8SmOfzBNswvNOkJy07awnOskwufwbbEZKHvKQMrPGkGfmrmlG/exec.
+// Paste your Apps Script Web app URL here (it ends with /exec).
 const API_URL = 'https://script.google.com/macros/s/AKfycby8PBuYFGktGAs7VCf8SmOfzBNswvNOkJy07awnOskwufwbbEZKHvKQMrPGkGfmrmlG/exec';
 // The agreement PDF uploaded next to this page on GitHub.
 const AGREEMENT_PDF_URL = 'crew-agreement.pdf';
@@ -668,8 +668,15 @@ async function api(action, payload) {
   } catch (e) {
     throw new Error('Could not reach the server. Please check your connection and try again.');
   }
+  const raw = await res.text();
   let j;
-  try { j = await res.json(); } catch (e) { throw new Error('The server sent an unexpected reply. Please try again.'); }
+  try { j = JSON.parse(raw); } catch (e) {
+    // Google sent a web page instead of data. Show its message so the problem can be identified.
+    const doc = new DOMParser().parseFromString(raw, 'text/html');
+    const detail = ((doc.querySelector('.errorMessage') || doc.body || {}).textContent || raw).replace(/\s+/g, ' ').trim().slice(0, 300);
+    console.error('Portal API reply (' + action + ', HTTP ' + res.status + '):', raw.slice(0, 3000));
+    throw new Error('The server sent an unexpected reply while doing "' + action + '" (HTTP ' + res.status + '). Google said: ' + (detail || 'nothing'));
+  }
   if (!j.ok) throw new Error(j.error || 'Something went wrong.');
   return j.data;
 }
