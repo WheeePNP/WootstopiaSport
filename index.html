@@ -311,8 +311,10 @@
       <div class="section-heading">Experience</div>
       <div class="card">
         <div class="field" data-wrap="jobExperience">
-          <label for="d_jobExperience">Job / Event Experience</label>
+          <label for="d_jobExperience">Job / Event Experience <span class="req">*</span></label>
           <textarea id="d_jobExperience" maxlength="1500" placeholder="e.g. REPC at XXX Marathon 2025, setup crew at XXX Marathon 2026"></textarea>
+          <span class="hint">If you have no experience yet, please put N/A.</span>
+          <div class="err-msg">Please fill in your experience, or put N/A if you have none.</div>
         </div>
       </div>
 
@@ -662,6 +664,10 @@ async function api(action, payload) {
   try {
     res = await fetch(API_URL, {
       method: 'POST',
+      // Never send the browser's Google sign in. A browser signed in to Google (especially to more than
+      // one account) otherwise gets "Sorry, unable to open the file at present" from Google.
+      credentials: 'omit',
+      cache: 'no-store',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(Object.assign({ action: action }, payload || {}))
     });
@@ -1008,7 +1014,7 @@ function collectDetails() {
   d.shirtSize = pillValue('shirtSize'); need('shirtSize', !!d.shirtSize, 'Please choose one option, or specify your size.');
   d.healthCondition = pillValue('healthCondition'); need('healthCondition', !!d.healthCondition, 'Please choose one option, or specify your condition.');
   d.dietary = pillValue('dietary'); need('dietary', !!d.dietary, 'Please choose one option, or specify your restriction.');
-  d.jobExperience = v('jobExperience');
+  d.jobExperience = v('jobExperience'); need('jobExperience', !!d.jobExperience, 'Please fill in your experience, or put N/A if you have none.');
   need('icCopy', FILES.icCopy.length > 0, 'Please attach a copy of your IC or passport, front and back.');
   d.bankName = bankValue('d_bankName'); need('bankName', !!d.bankName, 'Please choose your bank, or specify it.');
   d.bankAccount = v('bankAccount'); need('bankAccount', /^\d{5,20}$/.test(d.bankAccount), 'Please enter numbers only, without dashes (-) or spaces.');
@@ -1036,7 +1042,7 @@ async function loadEvents() {
   sel.disabled = false;
   const want = params.get('event');
   sel.innerHTML = (C.events.length > 1 ? '<option value="">Select an event</option>' : '') +
-    C.events.map(e => '<option value="' + esc(e.eventId) + '">' + esc(e.name) + '</option>').join('');
+    C.events.map(e => '<option value="' + esc(e.eventId) + '">' + esc(e.name) + (e.full ? ' (Full, replacements only)' : '') + '</option>').join('');
   const keep = C.event && C.events.find(e => e.eventId === C.event.eventId);
   if (keep) sel.value = keep.eventId;
   else if (want && C.events.find(e => e.eventId === want)) sel.value = want;
@@ -1061,8 +1067,9 @@ function onEventChange() {
 function renderPhases() {
   const box = $('#phaseList');
   if (!C.event) { box.innerHTML = ''; return; }
+  const fullNote = C.event.full ? '<div class="note-box"><p>All job scopes for this event are full. If you are replacing another crew, choose "Yes" above.</p></div>' : '';
   const nameOf = id => (C.event.phases.find(p => p.phaseId === id) || {}).jobScope || 'another job scope';
-  box.innerHTML = C.event.phases.map(p => {
+  box.innerHTML = fullNote + C.event.phases.map(p => {
     const held = C.held.has(p.phaseId);
     const sel = C.selected.has(p.phaseId);
     const clash = p.conflicts.filter(o => o !== p.phaseId && (C.selected.has(o) || C.held.has(o)));
@@ -1191,7 +1198,8 @@ $('#btnEventNext').addEventListener('click', async e => {
     if (!okP4) fieldErr('repPhone4');
     if (!okName || !okP4) { msg('eMsg', 'Please fill in the details of the crew you are replacing.'); return; }
     if (!repPicks().length) { fieldErr('repPicks'); msg('eMsg', $('#repOptions').innerHTML ? 'Please choose the job scope and day you are replacing.' : 'Please tap Find, then choose the job scope and day you are replacing.'); return; }
-  } else if (!C.selected.size) { msg('eMsg', 'Please choose at least one job scope.'); return; }
+  } else if (C.event.full) { msg('eMsg', 'All job scopes for this event are full. Only crew who are replacing someone can register now.'); return; }
+  else if (!C.selected.size) { msg('eMsg', 'Please choose at least one job scope.'); return; }
   if (C.mode === 'returning') {
     const ph = $('#uPhone').value.trim();
     if (ph && !/^\+[1-9]\d{6,14}$/.test(ph.replace(/[\s()-]/g, ''))) { msg('eMsg', 'Please enter your new phone number with the country code, e.g. +60 12-345 6789.'); return; }
