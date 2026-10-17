@@ -158,10 +158,11 @@
   .modal .box { background: #fff; border-radius: var(--radius); padding: 22px; max-width: 420px; width: 100%; max-height: 90vh; overflow: auto; }
   .modal h2 { margin: 0 0 6px; font-size: 19px; color: var(--navy); }
   a.wa { display: block; text-align: center; text-decoration: none; font-weight: 700; font-family: "Poppins", sans-serif; background: #25d366; color: #fff; border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
-  .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
-  .modes button { padding: 14px 6px; font-size: 15px; border-width: 2px; }
+  .modes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 12px 0; }
+  .modes button { grid-column: span 2; padding: 12px 4px; font-size: 15px; border-width: 2px; }
+  .modes button[data-mode="CheckIn"], .modes button[data-mode="CheckOut"] { grid-column: span 6; }
   .modes button.on[data-mode="CheckIn"] { background: #1f8a4c; border-color: #1f8a4c; color: #fff; }
-  .modes button.on[data-mode="RollCall"] { background: #c77c00; border-color: #c77c00; color: #fff; }
+  .modes button.on[data-mode^="RollCall"] { background: #c77c00; border-color: #c77c00; color: #fff; }
   .modes button.on[data-mode="CheckOut"] { background: var(--navy); border-color: var(--navy); color: #fff; }
   .mode-banner { text-align: center; font-family: "Poppins", sans-serif; font-weight: 800; font-size: 22px; padding: 8px; border-radius: 10px; color: #fff; }
   .cam { position: relative; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 1 / 1; }
@@ -544,7 +545,7 @@ Wages: RM70/day"></textarea>
 
       <div class="card hidden" data-panel="attendance">
         <h2>Attendance</h2>
-        <p class="sub">One list per job scope per day. A day is marked Incomplete when check in, roll call (if one was held) or check out is missing, and Absent when nothing was scanned.</p>
+        <p class="sub">One list per job scope per day. A day is marked Incomplete when check in, any roll call that was held, or check out is missing, and Absent when nothing was scanned.</p>
         <div class="grid2">
           <label class="f">Event<select id="atEvent"></select></label>
           <label class="f">Job scope<select id="atPhase"></select></label>
@@ -595,7 +596,9 @@ Wages: RM70/day"></textarea>
       </div>
       <div class="modes" id="scModes">
         <button type="button" data-mode="CheckIn" class="on">Check in</button>
-        <button type="button" data-mode="RollCall">Roll call</button>
+        <button type="button" data-mode="RollCall">Roll call 1</button>
+        <button type="button" data-mode="RollCall2">Roll call 2</button>
+        <button type="button" data-mode="RollCall3">Roll call 3</button>
         <button type="button" data-mode="CheckOut">Check out</button>
       </div>
       <div class="mode-banner" id="scBanner" style="background:#1f8a4c">CHECK IN</div>
@@ -1825,10 +1828,10 @@ function renderAttendance(d) {
   const counts = {};
   d.rows.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
   $('#atBody').innerHTML = '<h3>' + esc(d.jobScope) + ' &middot; ' + esc(d.dayLabel) + '</h3><p class="muted">' +
-    Object.keys(counts).map(k => counts[k] + ' ' + k).join(', ') + (d.rollCallHeld ? '' : ' &middot; No roll call held yet') + '</p>' +
-    (d.rows.length ? '<table class="data"><thead><tr><th>No.</th><th>Name</th><th>Phone</th><th>Check in</th><th>Roll call</th><th>Check out</th><th>Status</th></tr></thead><tbody>' +
+    Object.keys(counts).map(k => counts[k] + ' ' + k).join(', ') + (d.rollCallHeld ? ' &middot; Roll calls held: ' + (d.rollCallsHeld || []).map(t => ({ RollCall: '1', RollCall2: '2', RollCall3: '3' })[t]).join(', ') : ' &middot; No roll call held yet') + '</p>' +
+    (d.rows.length ? '<table class="data"><thead><tr><th>No.</th><th>Name</th><th>Phone</th><th>Check in</th><th>Roll call 1</th><th>Roll call 2</th><th>Roll call 3</th><th>Check out</th><th>Status</th></tr></thead><tbody>' +
       d.rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name) + (r.replacement ? ' <span class="muted">(replacement)</span>' : '') + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.checkIn) +
-        '</td><td>' + esc(r.rollCalls.join(', ')) + '</td><td>' + esc(r.checkOut) + '</td><td><span class="st ' + esc(r.status) + '">' + esc(r.status) + '</span>' +
+        '</td>' + [0, 1, 2].map(k => '<td>' + esc(r.rollCalls[k] || '') + '</td>').join('') + '<td>' + esc(r.checkOut) + '</td><td><span class="st ' + esc(r.status) + '">' + esc(r.status) + '</span>' +
         (r.missing.length ? '<br><span class="muted">Missing ' + esc(r.missing.join(', ')) + '</span>' : '') + '</td></tr>').join('') + '</tbody></table>'
       : '<p class="muted">No crew registered for this day.</p>');
 }
@@ -1880,7 +1883,7 @@ async function showQrOnDone(token, email) {
 
 /* ================= SCANNER ================= */
 const SC = { pin: '', scanner: '', mode: 'CheckIn', stream: null, busy: false, lastCode: '', lastAt: 0, canvas: null };
-const MODE_STYLE = { CheckIn: ['CHECK IN', '#1f8a4c'], RollCall: ['ROLL CALL', '#c77c00'], CheckOut: ['CHECK OUT', '#09263d'] };
+const MODE_STYLE = { CheckIn: ['CHECK IN', '#1f8a4c'], RollCall: ['ROLL CALL 1', '#c77c00'], RollCall2: ['ROLL CALL 2', '#c77c00'], RollCall3: ['ROLL CALL 3', '#c77c00'], CheckOut: ['CHECK OUT', '#09263d'] };
 function store(k, v) { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (_) { return ''; } return ''; }
 
 function setMode(m) {
