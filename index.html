@@ -187,6 +187,22 @@
   .rep-opt .t { font-weight: 600; font-family: "Poppins", sans-serif; margin-bottom: 6px; }
   .ack-edit { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
   .ack-edit textarea { min-height: 54px; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 8px; margin-left: 4px; background: var(--dis); color: var(--muted); white-space: nowrap; }
+  .tag.walkin { background: var(--bad-soft); color: var(--bad); }
+  .tag.black { background: #2b2b2b; color: #fff; }
+  .tag.backup { background: #fff6db; color: #8a6100; }
+  .tag.ok { background: var(--ok-soft); color: var(--ok); }
+  .tag.bad { background: var(--bad-soft); color: var(--bad); }
+  tr.walkin td { background: #fdf0ed; }
+  .sumgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 10px 0 6px; }
+  .sumbox { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 13px; background: #fafaf8; }
+  .sumbox strong { display: block; font-family: "Poppins", sans-serif; color: var(--navy); margin-bottom: 4px; }
+  .linkrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; margin-top: 8px; }
+  .cfbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .cfbtns button { padding: 16px 10px; font-size: 16px; }
+  .cfbtns .yes { background: #1f8a4c; color: #fff; border-color: #1f8a4c; }
+  .cfbtns .no { background: #fff; color: var(--bad); border-color: var(--bad); }
+  .rv-remark { min-width: 140px; padding: 6px 8px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -277,6 +293,12 @@
           <span class="hint">Include your country code, e.g. +60.</span>
           <div class="err-msg">Please enter your phone number with the country code.</div>
         </div>
+        <div class="field" data-wrap="whatsappUser">
+          <label for="d_whatsappUser">WhatsApp Username (if you use one)</label>
+          <input id="d_whatsappUser" maxlength="60" placeholder="e.g. @aini.runs" autocomplete="off">
+          <span class="hint">WhatsApp lets you hide your phone number behind a username. If you use a username, you must enter it here. <strong>Crew who use a username but do not put it in the form will not be accepted into the WhatsApp group.</strong></span>
+          <div class="err-msg">Use letters, numbers, dots, dashes or underscores only.</div>
+        </div>
         <div class="field" data-wrap="gender">
           <label>Gender <span class="req">*</span></label>
           <div class="check-grid" data-pills="gender"></div>
@@ -321,7 +343,7 @@
 
       <div class="section-heading">Payout Information</div>
       <div class="card">
-        <div class="note-box"><p><strong>Please double check your payout details.</strong> A penalty of RM10 will be applied if your payout cannot be made because the details are inaccurate.</p><p>All payouts will be made within 10 working days from the event day.</p></div>
+        <div class="note-box"><p><strong>Please double check your payout details.</strong> A penalty of RM10 will be applied if your payout cannot be made because the details are inaccurate.</p><p>All payouts will be made within 10 working days from the event day.</p><p><strong>No show (FFK):</strong> if you do not turn up on any committed day without notice, all wages for all your committed days may be cancelled.</p></div>
         <div class="field" data-wrap="icCopy">
           <label>IC/Passport copy (Front &amp; Back) <span class="req">*</span></label>
           <div class="file-drop">
@@ -363,6 +385,13 @@
       <p class="sub">Some job scopes cannot be taken together. Those will be greyed out once you pick one.</p>
       <div class="field"><label for="eventSelect">Event <span class="req">*</span></label><select id="eventSelect"></select></div>
       <div id="eventInfo" class="muted"></div>
+      <div class="field hidden" data-wrap="recruiter" id="recruiterWrap" style="margin-top:16px">
+        <label for="recruiterSelect">Your Recruiter <span class="req">*</span></label>
+        <select id="recruiterSelect"></select>
+        <span class="hint">The person who invited you to this event. You will report to them for this event only.</span>
+        <div class="err-msg">Please choose your recruiter.</div>
+      </div>
+      <div class="note-box hidden" id="backupNote"><p><strong>You are registering as a backup crew.</strong> Backups do not take a slot. We will WhatsApp or call you if you become an official crew member.</p></div>
       <div class="field" data-wrap="replacing" style="margin-top:16px">
         <label>Are you replacing another crew for this event? <span class="req">*</span></label>
         <div class="check-grid" data-pills="replacing"></div>
@@ -401,8 +430,9 @@
         <div class="grid2">
           <div class="field"><label for="uPhone">New Phone Number</label><input id="uPhone" type="tel" maxlength="30" placeholder="+60 12-345 6789"></div>
           <div class="field"><label for="uEmail">New Email Address</label><input id="uEmail" type="email" maxlength="120"></div>
+          <div class="field"><label for="uWhatsApp">WhatsApp Username</label><input id="uWhatsApp" maxlength="60" placeholder="e.g. @aini.runs"><span class="hint">If you hide your number behind a WhatsApp username, enter it here or you will not be accepted into the WhatsApp group.</span></div>
         </div>
-        <div class="note-box"><p><strong>Please double check your payout details.</strong> A penalty of RM10 will be applied if your payout cannot be made because the details are inaccurate.</p><p>All payouts will be made within 10 working days from the event day.</p></div>
+        <div class="note-box"><p><strong>Please double check your payout details.</strong> A penalty of RM10 will be applied if your payout cannot be made because the details are inaccurate.</p><p>All payouts will be made within 10 working days from the event day.</p><p><strong>No show (FFK):</strong> if you do not turn up on any committed day without notice, all wages for all your committed days may be cancelled.</p></div>
         <div class="grid2">
           <div class="field"><label for="uBankName">Bank Name</label><select id="uBankName" data-bank="uBankName"><option value="">Keep my current bank</option><option>AFFIN BANK BERHAD</option><option>BANK PERTANIAN MALAYSIA BHD</option><option>ALLIANCE BANK BERHAD</option><option>AL-RAJHI BANK</option><option>AMBANK BERHAD</option><option>BANK ISLAM BERHAD</option><option>BANK OF AMERICA</option><option>BK OF CHINA (M) BHD</option><option>BANK RAKYAT MALAYSIA</option><option>BNP PARIBAS MALAYSIA BHD</option><option>BANK SIMPANAN</option><option>CIMB BANK BERHAD</option><option>CITIBANK BERHAD</option><option>DEUTSCHE BANK(M) BHD</option><option>HONG LEONG BANK</option><option>HSBC (M) BERHAD</option><option>IND &amp; COM BANK OF CHINA (M)BHD</option><option>J.P. MORGAN CHASE BANK BHD</option><option>KUWAIT FINANCE HOUSE</option><option>MALAYAN BANKING BERHAD</option><option>MIZUHO CORPORATE BANK (M) BHD</option><option>BANK MUAMALAT (M'SIA)</option><option>BNK OF TOKYO (M) BHD</option><option>OCBC BANK (M'SIA) BHD</option><option>PUBLIC BANK BERHAD</option><option>RHB BANK</option><option>SUMITOMO MITSUI BANK</option><option>STANDARD CHARTERED</option><option>UNITED OVERSEAS BANK BERHAD</option><option value="Other">Others, please specify</option></select><input class="other-input hidden" id="o_uBankName" placeholder="Please specify your bank" maxlength="80"></div>
           <div class="field"><label for="uBankAccount">Account Number</label><input id="uBankAccount" maxlength="20" inputmode="numeric"><span class="hint">Numbers only, without dashes (-).</span></div>
@@ -438,6 +468,43 @@
       </div>
     </div>
 
+    <div class="hidden" id="stepWalkin">
+      <div class="note-box"><p><strong>Walk in registration.</strong> For crew joining on the event day who have not registered before. Please fill in the full crew form later so your details are complete.</p></div>
+      <div class="card">
+        <div class="field" data-wrap="w_fullName"><label for="w_fullName">Full Name as per IC / Passport <span class="req">*</span></label><input id="w_fullName" maxlength="120" autocomplete="name"><div class="err-msg">Please fill in your full name as per your IC or passport.</div></div>
+        <div class="field" data-wrap="w_nationality"><label>Nationality <span class="req">*</span></label><div class="check-grid" data-pills="w_nationality"></div><input class="other-input hidden" id="o_w_nationality" placeholder="Please specify" maxlength="60"><div class="err-msg">Please choose one option.</div></div>
+        <div class="field" data-wrap="w_idNumber"><label for="w_idNumber">IC / Passport Number <span class="req">*</span></label><input id="w_idNumber" maxlength="20" autocomplete="off"><span class="hint">Numbers only, without dashes (-).</span><div class="err-msg">Please fill in your IC or passport number.</div></div>
+        <div class="grid2">
+          <div class="field" data-wrap="w_phone"><label for="w_phone">Phone Number</label><input id="w_phone" type="tel" maxlength="30" placeholder="+60 12-345 6789"><span class="hint">Include your country code.</span><div class="err-msg">Please enter your phone number with the country code, or your WhatsApp username.</div></div>
+          <div class="field" data-wrap="w_whatsappUser"><label for="w_whatsappUser">or WhatsApp Username</label><input id="w_whatsappUser" maxlength="60" placeholder="e.g. @aini.runs"><span class="hint">Fill in at least one of these two.</span><div class="err-msg">Use letters, numbers, dots, dashes or underscores only.</div></div>
+        </div>
+        <div class="field" data-wrap="w_gender"><label>Gender <span class="req">*</span></label><div class="check-grid" data-pills="w_gender"></div><div class="err-msg">Please choose one option.</div></div>
+        <div class="field" data-wrap="w_shirtSize"><label>T-Shirt Size <span class="req">*</span></label><div class="check-grid" data-pills="w_shirtSize"></div><input class="other-input hidden" id="o_w_shirtSize" placeholder="Please specify" maxlength="60"><div class="err-msg">Please choose one option.</div></div>
+        <div class="field" data-wrap="w_dietary"><label>Dietary Restrictions <span class="req">*</span></label><div class="check-grid" data-pills="w_dietary"></div><input class="other-input hidden" id="o_w_dietary" placeholder="Please specify" maxlength="150"><div class="err-msg">Please choose one option.</div></div>
+      </div>
+      <div class="section-heading">Payout Information</div>
+      <div class="card">
+        <div class="note-box"><p><strong>Please double check your payout details.</strong> A penalty of RM10 will be applied if your payout cannot be made because the details are inaccurate.</p><p>All payouts will be made within 10 working days from the event day.</p><p><strong>No show (FFK):</strong> if you do not turn up on any committed day without notice, all wages for all your committed days may be cancelled.</p></div>
+        <div class="field" data-wrap="w_bankName"><label for="w_bankName">Bank Name <span class="req">*</span></label><select id="w_bankName" data-bank="w_bankName"></select><input class="other-input hidden" id="o_w_bankName" placeholder="Please specify your bank" maxlength="80"><div class="err-msg">Please choose your bank.</div></div>
+        <div class="field" data-wrap="w_bankAccount"><label for="w_bankAccount">Account Number <span class="req">*</span></label><input id="w_bankAccount" maxlength="20" inputmode="numeric"><span class="hint">Numbers only, without dashes (-).</span><div class="err-msg">Please enter numbers only, without dashes or spaces.</div></div>
+        <div class="field" data-wrap="w_bankHolder"><label for="w_bankHolder">Account Holder's Name <span class="req">*</span></label><input id="w_bankHolder" maxlength="120"><div class="err-msg">Please fill this in.</div></div>
+      </div>
+      <div class="section-heading">Today's Job</div>
+      <div class="card">
+        <div class="field"><label for="w_event">Event <span class="req">*</span></label><select id="w_event"></select></div>
+        <div class="field" data-wrap="w_phase"><label>Job Scope (today) <span class="req">*</span></label><div id="w_phases"></div><div class="err-msg">Please choose the job scope you are working today.</div></div>
+        <div class="field"><label for="w_recruiter">Recruiter (optional)</label><select id="w_recruiter"></select></div>
+      </div>
+      <div id="wMsg"></div>
+      <div class="row"><button type="button" class="primary" id="btnWalkinNext">Next: sign the agreement</button></div>
+    </div>
+
+    <div class="card hidden" id="stepConfirm">
+      <h2>Confirm your attendance</h2>
+      <div id="cfBody"><p class="muted">Loading&hellip;</p></div>
+      <div id="cfMsg"></div>
+    </div>
+
     <div class="modal hidden" id="waModal" role="dialog" aria-modal="true" aria-labelledby="waTitle">
       <div class="box">
         <h2 id="waTitle">Join your WhatsApp group</h2>
@@ -448,14 +515,38 @@
     </div>
 
     <div class="card hidden" id="stepDone">
-      <h2>You are registered</h2>
+      <h2 id="doneTitle">You are registered</h2>
       <div id="doneBody"></div>
       <div class="row"><button type="button" class="primary" id="btnAgain">Register for another event</button></div>
     </div>
   </section>
 
+  <!-- ================= RECRUITER VIEW (private link with ?recruiter=...) ================= -->
+  <section id="recruiterView" class="hidden">
+    <div class="card">
+      <h2 id="rvTitle">Your crew list</h2>
+      <p class="sub" id="rvSub">Loading&hellip;</p>
+      <div id="rvSummary"></div>
+      <div id="rvBody" class="tablewrap"></div>
+      <div id="rvMsg"></div>
+      <div class="row"><button type="button" id="rvRefresh">Refresh</button></div>
+    </div>
+  </section>
+
   <!-- ================= ADMIN VIEW ================= -->
   <section id="adminView" class="hidden">
+    <div class="modal hidden" id="cancelModal" role="dialog" aria-modal="true" aria-labelledby="cxTitle">
+      <div class="box">
+        <h2 id="cxTitle">Cancel registration</h2>
+        <p class="sub" id="cxWho"></p>
+        <label class="f">Reason<select id="cxReason"></select></label>
+        <label class="f hidden" id="cxOtherWrap">Type the reason<input id="cxOther" maxlength="300"></label>
+        <label class="ack-item" style="margin-top:10px"><input type="checkbox" id="cxNotify" checked><span>Email the crew about this cancellation (the reason is included)</span></label>
+        <div id="cxMsg"></div>
+        <div class="row end"><button type="button" id="cxClose">Back</button><button type="button" class="primary" id="cxGo">Cancel registration</button></div>
+      </div>
+    </div>
+
     <div class="card" id="adminLogin">
       <h2>Admin</h2>
       <p class="sub">Enter the admin key to manage events.</p>
@@ -478,7 +569,7 @@
 
       <div class="card" data-panel="events">
         <h2>Events</h2>
-        <p class="sub">Published events show to crew. An event disappears from the crew form when it is paused, deleted or every job scope is full.</p>
+        <p class="sub">Published events show to crew. Paused or deleted events are hidden. A full event stays listed for replacements, backups and walk ins.</p>
         <div id="evList"></div>
         <div id="evMsg"></div>
       </div>
@@ -491,6 +582,7 @@
           <label class="f">Location<input id="edLocation" maxlength="200"></label>
           <label class="f">Short description<input id="edDesc" maxlength="1000"></label>
           <label class="f">Scanner PIN<input id="edPin" maxlength="20" placeholder="e.g. KLM2026" style="text-transform:uppercase"><span class="hint">Coordinators enter this on the scanner page. 4 to 20 letters or numbers. Leave blank to turn scanning off.</span></label>
+          <label class="f">Recruiters (one name per line)<textarea id="edRecruiters" style="min-height:90px" placeholder="e.g.&#10;Aini&#10;Ben"></textarea><span class="hint">Crew must choose one of these when they register for this event. Each recruiter gets a private link on the Events tab. Removing a name switches off their link.</span></label>
         </div>
 
         <h3>Job scopes</h3>
@@ -528,7 +620,9 @@ Wages: RM70/day"></textarea>
           <select id="regEvent" style="flex:1;min-width:200px"></select>
           <button type="button" id="regRefresh">Refresh</button>
           <button type="button" id="regCsv">Download CSV</button>
+          <button type="button" class="primary" id="regPayout">Create payout Google Sheet</button>
         </div>
+        <div id="regLinks"></div>
         <div id="regBody" style="margin-top:14px"></div>
         <div id="regMsg"></div>
       </div>
@@ -536,7 +630,7 @@ Wages: RM70/day"></textarea>
       <div class="card hidden" data-panel="crew">
         <h2>Crew</h2>
         <div class="row" style="margin-top:0">
-          <input id="crewSearch" placeholder="Search name, Crew ID or phone" style="flex:1;min-width:200px">
+          <input id="crewSearch" placeholder="Search name, Crew ID, IC, phone or WhatsApp username" style="flex:1;min-width:200px">
           <button type="button" id="crewCsv">Download CSV</button>
         </div>
         <div id="crewBody" class="tablewrap" style="margin-top:14px"></div>
@@ -646,6 +740,11 @@ const PILL_OPTIONS = {
   healthCondition: ['Good', 'Other'],
   dietary: ['None (Can consume Non-Vegetarian and Halal food)', 'Vegetarian (Can consume five pungent plants)', 'Other']
 };
+// The walk in form uses the same choices.
+['nationality', 'gender', 'shirtSize', 'dietary'].forEach(k => { PILL_OPTIONS['w_' + k] = PILL_OPTIONS[k]; });
+// ?backup=1 opens the backup form, ?walkin=1 the walk in form.
+const KIND = new URLSearchParams(location.search).get('walkin') ? 'walkin' : new URLSearchParams(location.search).get('backup') ? 'backup' : '';
+const WA_USER_RE = /^@?[A-Za-z0-9._-]{2,60}$/;
 
 if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -658,7 +757,8 @@ const params = new URLSearchParams(location.search);
 function msg(id, text, kind) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.innerHTML = text ? '<div class="msg ' + (kind || 'err') + '">' + esc(text) + '</div>' : '';
+  // The contact number becomes a tap to WhatsApp link.
+  el.innerHTML = text ? '<div class="msg ' + (kind || 'err') + '">' + esc(text).replace('012 203 1340', '<a href="https://wa.me/60122031340" target="_blank" rel="noopener">012 203 1340</a>') + '</div>' : '';
 }
 
 async function api(action, payload) {
@@ -937,7 +1037,7 @@ const C = {
   mode: null, crew: null, idNumber: '', phoneLast4: '', details: null,
   events: [], event: null, selected: new Set(), held: new Set(), agreement: null, history: []
 };
-const STEPS = ['stepStart', 'stepReturning', 'stepDetails', 'stepEvent', 'stepAgreement', 'stepDone'];
+const STEPS = ['stepStart', 'stepReturning', 'stepDetails', 'stepEvent', 'stepWalkin', 'stepAgreement', 'stepDone', 'stepConfirm'];
 let pad = null;
 const todayStr = new Date().toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -949,14 +1049,14 @@ function goStep(id, noHistory) {
   if (id === 'stepAgreement' && pad) pad.reset();
 }
 function goBack() { const prev = C.history.pop(); if (prev) goStep(prev, true); }
-function needsSignature() { return C.mode === 'new' || (C.crew && C.crew.needsResign); }
+function needsSignature() { return KIND === 'walkin' || C.mode === 'new' || (C.crew && C.crew.needsResign); }
 
 // ----- Details form -----
 function buildPills() {
   Object.keys(PILL_OPTIONS).forEach(name => {
     const box = $('[data-pills="' + name + '"]');
     box.innerHTML = PILL_OPTIONS[name].map(o =>
-      '<label class="check-pill"><input type="radio" name="r_' + name + '" value="' + esc(o) + '"> ' + esc(name === 'nationality' && o === 'Other' ? 'Others, please specify' : o) + '</label>').join('');
+      '<label class="check-pill"><input type="radio" name="r_' + name + '" value="' + esc(o) + '"> ' + esc(/nationality$/.test(name) && o === 'Other' ? 'Others, please specify' : o) + '</label>').join('');
     box.addEventListener('change', e => {
       $$('.check-pill', box).forEach(p => p.classList.toggle('checked', $('input', p).checked));
       const other = $('#o_' + name);
@@ -1008,6 +1108,7 @@ function collectDetails() {
   else need('idNumber', /^[A-Z0-9]{5,20}$/.test(d.idNumber), 'Please enter your IC or passport number using letters and numbers only, without dashes (-) or spaces.');
   d.email = v('email'); need('email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email));
   d.phone = v('phone'); need('phone', /^\+[1-9]\d{6,14}$/.test(d.phone.replace(/[\s()-]/g, '')), 'Please enter your phone number with the country code, e.g. +60 12-345 6789.');
+  d.whatsappUser = v('whatsappUser'); need('whatsappUser', !d.whatsappUser || WA_USER_RE.test(d.whatsappUser), 'Use letters, numbers, dots, dashes or underscores only.');
   d.gender = pillValue('gender'); need('gender', !!d.gender);
   d.languages = {};
   LANG_ROWS.forEach(r => { const c = $('input[name="lang_' + r + '"]:checked'); if (c) d.languages[r] = c.value; });
@@ -1045,7 +1146,7 @@ async function loadEvents() {
   sel.disabled = false;
   const want = params.get('event');
   sel.innerHTML = (C.events.length > 1 ? '<option value="">Select an event</option>' : '') +
-    C.events.map(e => '<option value="' + esc(e.eventId) + '">' + esc(e.name) + (e.full ? ' (Full, replacements only)' : '') + '</option>').join('');
+    C.events.map(e => '<option value="' + esc(e.eventId) + '">' + esc(e.name) + (e.full ? (KIND === 'backup' ? ' (Full, backups welcome)' : ' (Full, replacements only)') : '') + '</option>').join('');
   const keep = C.event && C.events.find(e => e.eventId === C.event.eventId);
   if (keep) sel.value = keep.eventId;
   else if (want && C.events.find(e => e.eventId === want)) sel.value = want;
@@ -1064,19 +1165,29 @@ function onEventChange() {
   }
   $('#eventInfo').innerHTML = C.event && (C.event.location || C.event.description)
     ? '<p style="margin:0 0 12px">' + [C.event.location, C.event.description].filter(Boolean).map(esc).join('<br>') + '</p>' : '';
+  fillRecruiters();
   renderPhases();
 }
+
+function fillRecruiters() {
+  const list = (C.event && C.event.recruiters) || [];
+  const sel = $('#recruiterSelect'), cur = sel.value;
+  $('#recruiterWrap').classList.toggle('hidden', !list.length);
+  sel.innerHTML = '<option value="">Select your recruiter</option>' + list.map(r => '<option value="' + esc(r.recruiterId) + '">' + esc(r.name) + '</option>').join('');
+  if (cur && list.some(r => r.recruiterId === cur)) sel.value = cur;
+}
+$('#recruiterSelect').addEventListener('change', () => $('#recruiterWrap').classList.remove('invalid'));
 
 function renderPhases() {
   const box = $('#phaseList');
   if (!C.event) { box.innerHTML = ''; return; }
-  const fullNote = C.event.full ? '<div class="note-box"><p>All job scopes for this event are full. If you are replacing another crew, choose "Yes" above.</p></div>' : '';
+  const fullNote = C.event.full && KIND !== 'backup' ? '<div class="note-box"><p>All job scopes for this event are full. If you are replacing another crew, choose "Yes" above.</p></div>' : '';
   const nameOf = id => (C.event.phases.find(p => p.phaseId === id) || {}).jobScope || 'another job scope';
   box.innerHTML = fullNote + C.event.phases.map(p => {
     const held = C.held.has(p.phaseId);
     const sel = C.selected.has(p.phaseId);
     const clash = p.conflicts.filter(o => o !== p.phaseId && (C.selected.has(o) || C.held.has(o)));
-    const full = p.remaining <= 0;
+    const full = p.remaining <= 0 && KIND !== 'backup';
     const dis = held || (!sel && (full || clash.length > 0));
     let note = '';
     if (held) note = 'You are already registered for this';
@@ -1087,11 +1198,11 @@ function renderPhases() {
       '<input type="checkbox" data-phase="' + esc(p.phaseId) + '"' + (sel || held ? ' checked' : '') + (dis ? ' disabled' : '') + '>' +
       '<div class="body"><div class="t">' + esc(p.jobScope) + '</div><div class="m">' + phaseMeta(p) + '</div>' +
       (note ? '<div class="note">' + esc(note) + '</div>' : '') + '</div>' +
-      '<span class="slots">' + (full ? 'Full' : p.remaining + ' of ' + p.pax + ' left') + '</span></label>';
+      '<span class="slots">' + (KIND === 'backup' ? 'Backup' : full ? 'Full' : p.remaining + ' of ' + p.pax + ' left') + '</span></label>';
   }).join('');
 }
 
-function isReplacing() { return pillValue('replacing') === 'Yes'; }
+function isReplacing() { return KIND !== 'backup' && pillValue('replacing') === 'Yes'; }
 function onReplacingChange() {
   const rep = isReplacing();
   $('#replaceFields').classList.toggle('hidden', !rep);
@@ -1193,7 +1304,8 @@ $('#btnEventNext').addEventListener('click', async e => {
   msg('eMsg', '');
   clearErrs($('#stepEvent'));
   if (!C.event) { msg('eMsg', 'Please choose an event.'); return; }
-  const repAns = pillValue('replacing');
+  if ((C.event.recruiters || []).length && !$('#recruiterSelect').value) { fieldErr('recruiter'); msg('eMsg', 'Please choose your recruiter.'); return; }
+  const repAns = KIND === 'backup' ? 'No' : pillValue('replacing');
   if (!repAns) { fieldErr('replacing'); msg('eMsg', 'Please tell us whether you are replacing another crew.'); return; }
   if (repAns === 'Yes') {
     const okName = !!$('#repName').value.trim(), okP4 = /^\d{4}$/.test($('#repPhone4').value.trim());
@@ -1201,7 +1313,7 @@ $('#btnEventNext').addEventListener('click', async e => {
     if (!okP4) fieldErr('repPhone4');
     if (!okName || !okP4) { msg('eMsg', 'Please fill in the details of the crew you are replacing.'); return; }
     if (!repPicks().length) { fieldErr('repPicks'); msg('eMsg', $('#repOptions').innerHTML ? 'Please choose the job scope and day you are replacing.' : 'Please tap Find, then choose the job scope and day you are replacing.'); return; }
-  } else if (C.event.full) { msg('eMsg', 'All job scopes for this event are full. Only crew who are replacing someone can register now.'); return; }
+  } else if (C.event.full && KIND !== 'backup') { msg('eMsg', 'All job scopes for this event are full. Only crew who are replacing someone can register now.'); return; }
   else if (!C.selected.size) { msg('eMsg', 'Please choose at least one job scope.'); return; }
   if (C.mode === 'returning') {
     const ph = $('#uPhone').value.trim();
@@ -1209,28 +1321,30 @@ $('#btnEventNext').addEventListener('click', async e => {
     const acc = $('#uBankAccount').value.trim();
     if (acc && !/^\d{5,20}$/.test(acc)) { msg('eMsg', 'Please enter your new account number using numbers only, without dashes (-) or spaces.'); return; }
     if ($('#uBankName').value === 'Other' && !$('#o_uBankName').value.trim()) { msg('eMsg', 'Please specify your new bank.'); return; }
+    const wu = $('#uWhatsApp').value.trim();
+    if (wu && !WA_USER_RE.test(wu)) { msg('eMsg', 'Please enter your WhatsApp username using letters, numbers, dots, dashes or underscores only.'); return; }
   }
-  if (needsSignature()) {
-    await busy(e.currentTarget, async () => {
-      try {
-        C.agreement = await api('getAgreement');
-        $('#agIntro').textContent = C.mode === 'new' ? C.agreement.intro
-          : 'Our Event Crew Agreement has been updated. ' + C.agreement.intro;
-        $('#ackList').innerHTML = C.agreement.acknowledgements.map((a, i) =>
-          '<label class="ack-item"><input type="checkbox" data-ack="' + i + '"><span>' + esc(a) + '</span></label>').join('');
-        $('#ackErr').style.display = 'none';
-        $('#sigErr').style.display = 'none';
-        $('#metaName').textContent = C.mode === 'new' ? C.details.fullName : C.crew.fullName;
-        $('#metaDate').textContent = todayStr;
-        msg('aMsg', '');
-        goStep('stepAgreement');
-        renderAgreementPdf();
-      } catch (err) { msg('eMsg', err.message); }
-    });
-  } else {
-    await busy(e.currentTarget, () => submitAll('eMsg'), 'Submitting...');
-  }
+  if (needsSignature()) await openAgreement(e.currentTarget, 'eMsg', C.mode === 'new' ? C.details.fullName : C.crew.fullName, C.mode !== 'new');
+  else await busy(e.currentTarget, () => submitAll('eMsg'), 'Submitting...');
 });
+
+async function openAgreement(btn, msgId, fullName, updated) {
+  await busy(btn, async () => {
+    try {
+      C.agreement = await api('getAgreement');
+      $('#agIntro').textContent = updated ? 'Our Event Crew Agreement has been updated. ' + C.agreement.intro : C.agreement.intro;
+      $('#ackList').innerHTML = C.agreement.acknowledgements.map((a, i) =>
+        '<label class="ack-item"><input type="checkbox" data-ack="' + i + '"><span>' + esc(a) + '</span></label>').join('');
+      $('#ackErr').style.display = 'none';
+      $('#sigErr').style.display = 'none';
+      $('#metaName').textContent = fullName;
+      $('#metaDate').textContent = todayStr;
+      msg('aMsg', '');
+      goStep('stepAgreement');
+      renderAgreementPdf();
+    } catch (err) { msg(msgId, err.message); }
+  });
+}
 
 $('#sigClear').addEventListener('click', () => pad.reset());
 
@@ -1247,7 +1361,11 @@ $('#btnSubmit').addEventListener('click', async e => {
 async function submitAll(msgId) {
   msg(msgId, 'Submitting your registration. This can take up to a minute, please keep this page open.', 'ok');
   try {
-    const payload = { mode: C.mode, eventId: C.event.eventId, phaseIds: isReplacing() ? [] : [...C.selected] };
+    let payload;
+    if (KIND === 'walkin') {
+      payload = { mode: 'walkin', details: C.walkin, eventId: C.walkinEvent, phaseIds: [C.walkinPhase], recruiterId: $('#w_recruiter').value };
+    } else {
+    payload = { mode: C.mode, eventId: C.event.eventId, phaseIds: isReplacing() ? [] : [...C.selected], kind: KIND, recruiterId: $('#recruiterSelect').value };
     if (isReplacing()) payload.replacing = { fullName: $('#repName').value.trim(), phoneLast4: $('#repPhone4').value.trim(), picks: repPicks() };
     if (C.mode === 'new') {
       payload.details = C.details;
@@ -1259,9 +1377,11 @@ async function submitAll(msgId) {
       payload.phoneLast4 = C.phoneLast4;
       payload.updates = {
         phone: $('#uPhone').value, email: $('#uEmail').value,
-        bankName: bankValue('uBankName'), bankAccount: $('#uBankAccount').value.trim(), bankHolder: $('#uBankHolder').value
+        bankName: bankValue('uBankName'), bankAccount: $('#uBankAccount').value.trim(), bankHolder: $('#uBankHolder').value,
+        whatsappUser: $('#uWhatsApp').value.trim()
       };
       if (FILES.uPhoto) payload.photo = await compressIfImage(FILES.uPhoto);
+    }
     }
     if (needsSignature()) {
       const sig = pad.trimmedPng();
@@ -1282,7 +1402,24 @@ async function submitAll(msgId) {
   }
 }
 
+function jobList(r) {
+  return '<ul class="done-list">' + r.registered.map(p => '<li><strong>' + esc(p.jobScope) + '</strong><br><span class="muted">' +
+    (p.days.length ? 'Your day' + (p.days.length > 1 ? 's' : '') + ': ' + esc(p.days.join(', ')) + '<br>' : '') + phaseMeta(Object.assign({}, p, { dateText: p.days.length ? '' : p.dateText })) +
+    (p.whatsapp ? '<br><a href="' + esc(p.whatsapp) + '" target="_blank" rel="noopener">Join the WhatsApp group</a>' : '') + '</span></li>').join('') + '</ul>';
+}
+
 function showDone(r) {
+  C.history = [];
+  if (r.kind === 'walkin') {
+    $('#doneTitle').textContent = 'You are registered for today';
+    $('#doneBody').innerHTML = '<p>Thank you, ' + esc(r.fullName) + '. You are registered as a walk in for <strong>' + esc(r.eventName) + '</strong>:</p>' + jobList(r) +
+      '<div class="note-box"><p><strong>Show the QR code below to your coordinator</strong> at check in, every roll call and check out. Take a screenshot of it now, as no email is sent.</p>' +
+      '<p>Your details are not complete yet. Please fill in the full crew form later: open the crew portal, choose "First time with us" and use the same IC or passport number.</p></div>';
+    $('#btnAgain').classList.add('hidden');
+    goStep('stepDone', true);
+    showQrOnDone(r.qrToken, '');
+    return;
+  }
   if (C.mode === 'new') {
     C.idNumber = C.details.idNumber;
     C.phoneLast4 = C.details.phone.replace(/\D/g, '').slice(-4);
@@ -1298,19 +1435,30 @@ function showDone(r) {
   const idBlock = r.isNew
     ? '<p class="muted">Next time, choose "I have registered before" and use your IC or passport number with the last 4 digits of your phone number to skip the form.</p>'
     : '';
-  const repLine = r.replacing ? '<p>You are replacing <strong>' + esc(r.replacing) + '</strong> for this event.</p>' : '';
-  $('#doneBody').innerHTML = '<p>Thank you, ' + esc(r.fullName) + '. You are confirmed for <strong>' + esc(r.eventName) + '</strong>:</p>' + repLine +
-    '<ul class="done-list">' + r.registered.map(p => '<li><strong>' + esc(p.jobScope) + '</strong><br><span class="muted">' +
-      (p.days.length ? 'Your day' + (p.days.length > 1 ? 's' : '') + ': ' + esc(p.days.join(', ')) + '<br>' : '') + phaseMeta(Object.assign({}, p, { dateText: p.days.length ? '' : p.dateText })) +
-      (p.whatsapp ? '<br><a href="' + esc(p.whatsapp) + '" target="_blank" rel="noopener">Join the WhatsApp group</a>' : '') + '</span></li>').join('') + '</ul>' +
-    idBlock + '<p class="muted">Our team will contact you with briefing details before the event. All payouts will be made within 10 working days from the event day.</p>';
-  ['uPhone', 'uEmail', 'uBankName', 'uBankAccount', 'uBankHolder', 'o_uBankName'].forEach(id => { $('#' + id).value = ''; });
+  if (r.kind === 'backup') {
+    $('#doneTitle').textContent = 'You are on the backup list';
+    $('#doneBody').innerHTML = '<p>Thank you, ' + esc(r.fullName) + '. You are registered as a <strong>backup crew</strong> for <strong>' + esc(r.eventName) + '</strong>:</p>' + jobList(r) +
+      '<div class="note-box"><p><strong>We will WhatsApp or call you if you become an official crew member.</strong> You will then get a "Job confirmed" email with your QR code and the WhatsApp group link.</p></div>' + idBlock;
+  } else {
+    const repLine = r.replacing ? '<p>You are replacing <strong>' + esc(r.replacing) + '</strong> for this event.</p>' : '';
+    const proofEmail = r.isNew ? '"Registration successful"' : '"Job confirmed"';
+    const who = r.recruiterName ? 'your recruiter, <strong>' + esc(r.recruiterName) + '</strong>,' : 'your recruiter';
+    $('#doneTitle').textContent = 'You are registered';
+    $('#doneBody').innerHTML = '<p>Thank you, ' + esc(r.fullName) + '. You are confirmed for <strong>' + esc(r.eventName) + '</strong>:</p>' + repLine + jobList(r) +
+      '<div class="note-box"><p><strong>Important: complete these steps now</strong></p>' +
+      '<p>1. Join the WhatsApp group yourself using the link above.</p>' +
+      '<p>2. Take a screenshot of you joining the WhatsApp group, and a screenshot of the ' + proofEmail + ' email we just sent you.</p>' +
+      '<p>3. Send both screenshots to ' + who + ' as proof. Your recruiter approves your place.</p></div>' +
+      idBlock + '<p class="muted">Two days before the event you will get an email asking you to confirm your attendance. Reply within 12 hours or your job will be cancelled. All payouts will be made within 10 working days from the event day.</p>';
+  }
+  ['uPhone', 'uEmail', 'uWhatsApp', 'uBankName', 'uBankAccount', 'uBankHolder', 'o_uBankName'].forEach(id => { $('#' + id).value = ''; });
   $('#o_uBankName').classList.add('hidden');
   if (clearUPhoto) clearUPhoto();
-  C.history = [];
   goStep('stepDone', true);
-  showQrOnDone(r.qrToken, r.email);
-  showWhatsApp(r.registered);
+  if (r.kind !== 'backup') {
+    showQrOnDone(r.qrToken, r.email);
+    showWhatsApp(r.registered);
+  }
 }
 
 function showWhatsApp(registered) {
@@ -1337,6 +1485,149 @@ $('#btnAgain').addEventListener('click', async e => {
     } catch (err) { alert(err.message); }
   });
 });
+
+/* ================= WALK IN (link with ?walkin=1) ================= */
+async function startWalkin() {
+  $('#w_bankName').innerHTML = $('#d_bankName').innerHTML;
+  goStep('stepWalkin', true);
+  try {
+    const all = await api('getOpenEvents');
+    // Only job scopes working today can take walk ins.
+    C.walkinEvents = all.map(e => Object.assign({}, e, { phases: e.phases.filter(p => (p.days || []).indexOf(e.today) >= 0) })).filter(e => e.phases.length);
+  } catch (err) { msg('wMsg', err.message); C.walkinEvents = []; }
+  const sel = $('#w_event');
+  if (!C.walkinEvents.length) { sel.innerHTML = '<option value="">No job scopes are running today</option>'; sel.disabled = true; renderWalkinPhases(); return; }
+  sel.innerHTML = C.walkinEvents.map(e => '<option value="' + esc(e.eventId) + '">' + esc(e.name) + '</option>').join('');
+  const want = params.get('event');
+  if (want && C.walkinEvents.some(e => e.eventId === want)) sel.value = want;
+  renderWalkinPhases();
+}
+function renderWalkinPhases() {
+  const ev = (C.walkinEvents || []).find(e => e.eventId === $('#w_event').value);
+  $('#w_phases').innerHTML = ev ? ev.phases.map(p => '<label class="phase"><input type="radio" name="w_phase" value="' + esc(p.phaseId) + '"><div class="body"><div class="t">' + esc(p.jobScope) + '</div><div class="m">' + phaseMeta(Object.assign({}, p, { days: [ev.today], dateText: '' })) + '</div></div></label>').join('') : '';
+  const rs = $('#w_recruiter');
+  rs.innerHTML = '<option value="">No recruiter</option>' + (ev ? ev.recruiters.map(r => '<option value="' + esc(r.recruiterId) + '">' + esc(r.name) + '</option>').join('') : '');
+}
+$('#w_event').addEventListener('change', renderWalkinPhases);
+$('#w_phases').addEventListener('change', () => {
+  $$('#w_phases .phase').forEach(l => l.classList.toggle('sel', $('input', l).checked));
+  $('[data-wrap="w_phase"]').classList.remove('invalid');
+});
+$('#btnWalkinNext').addEventListener('click', async e => {
+  const scope = $('#stepWalkin');
+  clearErrs(scope); msg('wMsg', '');
+  const v = id => ($('#' + id).value || '').trim();
+  const bad = [];
+  const need = (id, ok, text) => { if (!ok) { fieldErr(id, text); bad.push(id); } };
+  const d = {};
+  d.fullName = v('w_fullName'); need('w_fullName', d.fullName && NAME_RE.test(d.fullName));
+  d.nationality = pillValue('w_nationality'); need('w_nationality', !!d.nationality);
+  d.idNumber = v('w_idNumber').toUpperCase();
+  if (d.nationality === 'Malaysian') need('w_idNumber', /^\d{12}$/.test(d.idNumber), 'Please enter your 12 digit IC number, numbers only without dashes (-).');
+  else need('w_idNumber', /^[A-Z0-9]{5,20}$/.test(d.idNumber), 'Please enter your passport number using letters and numbers only.');
+  d.phone = v('w_phone'); d.whatsappUser = v('w_whatsappUser');
+  if (d.phone) need('w_phone', /^\+[1-9]\d{6,14}$/.test(d.phone.replace(/[\s()-]/g, '')), 'Please enter your phone number with the country code, e.g. +60 12-345 6789.');
+  if (d.whatsappUser) need('w_whatsappUser', WA_USER_RE.test(d.whatsappUser));
+  if (!d.phone && !d.whatsappUser) need('w_phone', false, 'Please enter your phone number or your WhatsApp username.');
+  d.gender = pillValue('w_gender'); need('w_gender', !!d.gender);
+  d.shirtSize = pillValue('w_shirtSize'); need('w_shirtSize', !!d.shirtSize);
+  d.dietary = pillValue('w_dietary'); need('w_dietary', !!d.dietary);
+  d.bankName = bankValue('w_bankName'); need('w_bankName', !!d.bankName);
+  d.bankAccount = v('w_bankAccount'); need('w_bankAccount', /^\d{5,20}$/.test(d.bankAccount));
+  d.bankHolder = v('w_bankHolder'); need('w_bankHolder', !!d.bankHolder);
+  const ph = $('input[name="w_phase"]:checked');
+  need('w_phase', !!ph);
+  if (bad.length) {
+    msg('wMsg', 'Please fix the highlighted fields above.');
+    const first = $('[data-wrap="' + bad[0] + '"]'); if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  C.walkin = d; C.walkinEvent = $('#w_event').value; C.walkinPhase = ph.value;
+  C.history = ['stepWalkin'];
+  await openAgreement(e.currentTarget, 'wMsg', d.fullName, false);
+});
+
+/* ================= ATTENDANCE CONFIRMATION (link with ?confirm=...) ================= */
+async function startConfirm() {
+  goStep('stepConfirm', true);
+  try { renderConfirm(await api('confirmInfo', { token: params.get('confirm') })); }
+  catch (err) { $('#cfBody').innerHTML = ''; msg('cfMsg', err.message); }
+}
+function renderConfirm(d) {
+  const want = params.get('a');
+  const state = d.status !== 'Confirmed'
+    ? '<div class="msg err">This job is ' + esc(d.status.toLowerCase()) + '.</div>'
+    : d.confirmStatus === 'Coming' ? '<div class="msg ok">You have confirmed that you are coming. Thank you!</div>' : '';
+  $('#cfBody').innerHTML = '<p>Hi ' + esc(d.name) + ', please confirm your attendance for <strong>' + esc(d.eventName) + '</strong>:</p>' +
+    '<ul class="done-list"><li><strong>' + esc(d.jobScope) + '</strong><br><span class="muted">' +
+    (d.days.length ? 'Your day' + (d.days.length > 1 ? 's' : '') + ': ' + esc(d.days.join(', ')) + '<br>' : '') +
+    (d.timeText ? 'Time: ' + esc(d.timeText) + (d.callTime ? ' (Call time: ' + esc(d.callTime) + ')' : '') + '<br>' : '') +
+    (d.venue ? 'Venue: ' + esc(d.venue) : '') + '</span></li></ul>' + state +
+    (d.open ? '<p class="muted">Reply by <strong>' + esc(d.deadline) + '</strong>. If you do not reply, or you choose "I cannot make it", your job will be cancelled automatically.</p>' +
+      '<div class="cfbtns"><button type="button" class="yes" data-cf="yes"' + (want === 'yes' ? ' style="outline:3px solid var(--yellow)"' : '') + '>I am coming</button>' +
+      '<button type="button" class="no" data-cf="no"' + (want === 'no' ? ' style="outline:3px solid var(--yellow)"' : '') + '>I cannot make it</button></div>'
+      : (d.status === 'Confirmed' && d.confirmStatus !== 'Coming' ? '<div class="msg err">The reply window has closed.</div>' : ''));
+}
+$('#cfBody').addEventListener('click', async e => {
+  const b = e.target.closest('[data-cf]');
+  if (!b) return;
+  if (b.dataset.cf === 'no' && !confirm('Your job will be cancelled and your slot given to someone else. Continue?')) return;
+  msg('cfMsg', '');
+  await busy(b, async () => {
+    try {
+      const d = await api('confirmAttendance', { token: params.get('confirm'), answer: b.dataset.cf });
+      renderConfirm(d);
+      msg('cfMsg', b.dataset.cf === 'yes' ? 'Thank you, your attendance is confirmed. See you there!' : 'Your job has been cancelled. A cancellation email has been sent to you.', b.dataset.cf === 'yes' ? 'ok' : 'err');
+    } catch (err) { msg('cfMsg', err.message); }
+  });
+});
+
+/* ================= RECRUITER PAGE (link with ?recruiter=...) ================= */
+const RV = { data: null };
+async function loadRecruiter() {
+  msg('rvMsg', '');
+  try { RV.data = await api('recruiterView', { token: params.get('recruiter') }); renderRecruiter(); }
+  catch (err) { $('#rvSub').textContent = ''; msg('rvMsg', err.message); }
+}
+function renderRecruiter() {
+  const d = RV.data;
+  $('#rvTitle').textContent = d.eventName;
+  $('#rvSub').textContent = 'Recruiter: ' + d.recruiter + '. This list updates live. Tick "Joined WhatsApp" once you have checked their screenshots.';
+  const active = d.rows.filter(r => r.status === 'Confirmed');
+  const people = new Set(d.rows.map(r => r.name + '|' + r.phone)).size;
+  $('#rvSummary').innerHTML = '<div class="sumgrid">' +
+    '<div class="sumbox"><strong>' + people + '</strong>crew on your list</div>' +
+    '<div class="sumbox"><strong>' + active.filter(r => r.waJoined).length + ' of ' + active.length + '</strong>confirmed jobs ticked as joined WhatsApp</div>' +
+    '<div class="sumbox"><strong>RM' + d.totalFee + '</strong>fee earned so far (RM' + d.feePerJob + ' per crew per job scope, only when they attended every day)</div></div>';
+  if (!d.rows.length) { $('#rvBody').innerHTML = '<p class="muted">Nobody has chosen you as their recruiter yet.</p>'; return; }
+  const st = r => {
+    if (r.status === 'Cancelled') return '<span class="tag bad">Cancelled</span>' + (r.cancelReason ? '<br><span class="muted">' + esc(r.cancelReason) + '</span>' : '');
+    if (r.status === 'Backup') return '<span class="tag backup">Backup</span>';
+    if (r.status === 'Replaced') return '<span class="tag">Replaced</span>';
+    return '<span class="tag ok">Confirmed</span>' + (r.source === 'Walk-in' ? '<span class="tag walkin">Walk in</span>' : '');
+  };
+  const cf = { Pending: 'Waiting for reply', Coming: 'Coming', Cannot: 'Cannot make it', 'No reply': 'No reply', Auto: 'Confirmed' };
+  $('#rvBody').innerHTML = '<table class="data"><thead><tr><th>No.</th><th>Name</th><th>Phone</th><th>WhatsApp username</th><th>Job scope</th><th>Days</th><th>Form</th><th>Status</th><th>Final check</th><th>Attendance</th><th>Fee</th><th>Joined WhatsApp</th><th>Remark / Replace by</th></tr></thead><tbody>' +
+    d.rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name) + (r.replacementOf ? '<br><span class="muted">Replacing ' + esc(r.replacementOf) + '</span>' : '') + (r.replacedBy ? '<br><span class="muted">Replaced: ' + esc(r.replacedBy) + '</span>' : '') +
+      '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.whatsappUser) + '</td><td>' + esc(r.jobScope) + '</td><td>' + esc(r.days.join(', ')) + '</td><td>&#10003;</td><td>' + st(r) +
+      '</td><td>' + esc(cf[r.confirmStatus] || '') + '</td><td>' + esc(r.attendance.join(', ')) + '</td><td>' + (r.feeState ? esc(r.feeState) + (r.fee ? ' RM' + r.fee : '') : '') +
+      '</td><td><input type="checkbox" data-rvj="' + esc(r.regId) + '"' + (r.waJoined ? ' checked' : '') + ' style="width:18px;height:18px"></td>' +
+      '<td><input class="rv-remark" data-rvr="' + esc(r.regId) + '" value="' + esc(r.remark) + '" maxlength="300"></td></tr>').join('') + '</tbody></table>';
+}
+$('#rvBody').addEventListener('change', async e => {
+  const j = e.target.dataset.rvj, rr = e.target.dataset.rvr;
+  if (!j && !rr) return;
+  const payload = { token: params.get('recruiter'), regId: j || rr };
+  if (j) payload.joined = e.target.checked; else payload.remark = e.target.value;
+  try {
+    await api('recruiterUpdate', payload);
+    const row = RV.data.rows.find(x => x.regId === payload.regId);
+    if (j) row.waJoined = e.target.checked; else row.remark = e.target.value;
+    msg('rvMsg', 'Saved.', 'ok');
+    if (j) renderRecruiter();
+  } catch (err) { msg('rvMsg', err.message); }
+});
+$('#rvRefresh').addEventListener('click', e => busy(e.currentTarget, loadRecruiter));
 
 /* ================= ADMIN ================= */
 const A = { key: '', events: [], editor: null, regData: null, crew: [], acks: [] };
@@ -1369,7 +1660,7 @@ $('#formAdminLogin').addEventListener('submit', async e => {
   await busy(btn, async () => {
     try {
       A.key = $('#adminKey').value;
-      await adminApi('adminLogin');
+      await adminApi('adminLogin', { portalUrl: location.origin + location.pathname });
       $('#adminLogin').classList.add('hidden');
       $('#adminPanel').classList.remove('hidden');
       showTab('events');
@@ -1406,11 +1697,14 @@ function renderAdminEvents() {
         : '<button type="button" class="small" data-act="publish" data-id="' + esc(ev.eventId) + '">Publish</button>') +
       '<button type="button" class="small" data-act="link" data-id="' + esc(ev.eventId) + '">Copy crew link</button>' +
       '<button type="button" class="small" data-act="scanlink" data-id="' + esc(ev.eventId) + '">Copy scanner link</button>' +
+      '<button type="button" class="small" data-act="backuplink" data-id="' + esc(ev.eventId) + '">Copy backup link</button>' +
+      '<button type="button" class="small" data-act="walkinlink" data-id="' + esc(ev.eventId) + '">Copy walk in link</button>' +
       '<button type="button" class="small" data-act="regs" data-id="' + esc(ev.eventId) + '">Registrations</button>' +
       '<button type="button" class="small danger" data-act="delete" data-id="' + esc(ev.eventId) + '">Delete</button>' +
       '</div></div><div style="margin-top:10px">' +
-      ev.phases.map(p => '<div class="ph-row"><span>' + esc(p.jobScope) + (dateLine(p) ? ' <span class="muted">' + esc(dateLine(p)) + '</span>' : '') + (p.whatsapp ? '' : ' <span class="badge">No WhatsApp link</span>') + '</span><span>' + p.filled + ' / ' + p.pax + '</span></div>').join('') +
-      '</div></div>';
+      ev.phases.map(p => '<div class="ph-row"><span>' + esc(p.jobScope) + (dateLine(p) ? ' <span class="muted">' + esc(dateLine(p)) + '</span>' : '') + (p.whatsapp ? '' : ' <span class="badge">No WhatsApp link</span>') + (p.dailyWage ? '' : ' <span class="badge">No daily wage</span>') + '</span><span>' + p.filled + ' / ' + p.pax + '</span></div>').join('') +
+      '</div>' + ((ev.recruiters || []).length ? '<div class="linkrow"><strong>Recruiter links:</strong>' + ev.recruiters.map(r => '<button type="button" class="small" data-act="reclink" data-id="' + esc(ev.eventId) + '" data-token="' + esc(r.token) + '" data-name="' + esc(r.name) + '">' + esc(r.name) + '</button>').join('') + '</div>'
+        : '<div class="linkrow muted">No recruiters yet. Add them in Edit.</div>') + '</div>';
   }).join('');
 }
 
@@ -1426,6 +1720,15 @@ $('#evList').addEventListener('click', async e => {
   if (act === 'scanlink') {
     const link = location.origin + location.pathname + '?scan=1';
     try { await navigator.clipboard.writeText(link); msg('evMsg', 'Scanner link copied: ' + link + (ev.scannerPin ? '  (PIN: ' + ev.scannerPin + ')' : '  (set a scanner PIN first)'), 'ok'); }
+    catch (_) { prompt('Copy this link:', link); }
+    return;
+  }
+  if (act === 'reclink' || act === 'backuplink' || act === 'walkinlink') {
+    const base = location.origin + location.pathname;
+    const link = act === 'reclink' ? base + '?recruiter=' + encodeURIComponent(b.dataset.token)
+      : act === 'backuplink' ? crewLink(id) + '&backup=1' : base + '?walkin=1&event=' + encodeURIComponent(id);
+    const what = act === 'reclink' ? 'Private link for ' + b.dataset.name + ' (send only to them)' : act === 'backuplink' ? 'Backup link' : 'Walk in link';
+    try { await navigator.clipboard.writeText(link); msg('evMsg', what + ' copied: ' + link, 'ok'); }
     catch (_) { prompt('Copy this link:', link); }
     return;
   }
@@ -1445,15 +1748,16 @@ $('#evList').addEventListener('click', async e => {
 
 /* ----- Event editor ----- */
 function blankPhase() {
-  return { phaseId: newPhaseId(), jobScope: '', pax: '', startDate: '', endDate: '', dateText: '', timeText: '', callTime: '', venue: '', wages: '', whatsapp: '', conflicts: [], filled: 0 };
+  return { phaseId: newPhaseId(), jobScope: '', pax: '', startDate: '', endDate: '', dateText: '', timeText: '', callTime: '', venue: '', wages: '', dailyWage: '', whatsapp: '', conflicts: [], filled: 0 };
 }
 function newEditor() {
-  A.editor = { eventId: '', name: '', location: '', description: '', scannerPin: '', status: 'Paused', phases: [blankPhase()] };
+  A.editor = { eventId: '', name: '', location: '', description: '', scannerPin: '', recruiters: '', status: 'Paused', phases: [blankPhase()] };
   fillEditor();
 }
 function openEditor(ev) {
   A.editor = {
     eventId: ev.eventId, name: ev.name, location: ev.location, description: ev.description, scannerPin: ev.scannerPin || '', status: ev.status,
+    recruiters: (ev.recruiters || []).map(r => r.name).join('\n'),
     phases: ev.phases.map(p => Object.assign({}, p, { conflicts: p.conflicts.slice() }))
   };
   fillEditor();
@@ -1466,6 +1770,7 @@ function fillEditor() {
   $('#edLocation').value = ed.location;
   $('#edDesc').value = ed.description;
   $('#edPin').value = ed.scannerPin;
+  $('#edRecruiters').value = ed.recruiters || '';
   $('#edPublish').textContent = ed.eventId && ed.status === 'Published' ? 'Save and keep published' : 'Publish';
   msg('edMsg', '');
   renderPhaseEditors();
@@ -1481,7 +1786,8 @@ const PHASE_FIELDS = [
   ['timeText', 'Time', 'e.g. 9am to 7pm', 'text'],
   ['callTime', 'Call time', 'e.g. 8:45am', 'text'],
   ['venue', 'Venue', 'e.g. SCORE Warehouse @ Sungai Buloh', 'text'],
-  ['wages', 'Wages', 'e.g. RM70/day', 'text'],
+  ['wages', 'Wages (shown to crew)', 'e.g. RM70/day', 'text'],
+  ['dailyWage', 'Daily wage in RM (for payout)', 'e.g. 70', 'number'],
   ['whatsapp', 'WhatsApp group link', 'https://chat.whatsapp.com/...', 'url']
 ];
 const REQUIRED_PHASE_FIELDS = ['jobScope', 'pax', 'startDate', 'endDate'];
@@ -1494,7 +1800,7 @@ function renderPhaseEditors() {
     '<button type="button" class="small danger" data-remove="' + i + '"' + (p.filled ? ' disabled title="Crew have registered for this job scope"' : '') + '>Remove</button></span></div>' +
     '<div class="grid2">' + PHASE_FIELDS.map(f =>
       '<label class="f">' + f[1] + (REQUIRED_PHASE_FIELDS.indexOf(f[0]) >= 0 ? ' <span class="req">*</span>' : '') +
-      '<input data-i="' + i + '" data-f="' + f[0] + '" type="' + f[3] + '"' + (f[3] === 'number' ? ' min="' + Math.max(1, p.filled || 0) + '"' : '') +
+      '<input data-i="' + i + '" data-f="' + f[0] + '" type="' + f[3] + '"' + (f[0] === 'pax' ? ' min="' + Math.max(1, p.filled || 0) + '"' : f[3] === 'number' ? ' min="0" step="0.01"' : '') +
       ' placeholder="' + esc(f[2]) + '" value="' + esc(p[f[0]]) + '"></label>').join('') +
     '</div></div>').join('');
 }
@@ -1526,8 +1832,8 @@ $('#edPhases').addEventListener('click', e => {
 
 $('#edAddPhase').addEventListener('click', () => { A.editor.phases.push(blankPhase()); renderPhaseEditors(); renderGrid(); });
 
-['edName', 'edLocation', 'edDesc', 'edPin'].forEach(id => $('#' + id).addEventListener('input', e => {
-  const map = { edName: 'name', edLocation: 'location', edDesc: 'description', edPin: 'scannerPin' };
+['edName', 'edLocation', 'edDesc', 'edPin', 'edRecruiters'].forEach(id => $('#' + id).addEventListener('input', e => {
+  const map = { edName: 'name', edLocation: 'location', edDesc: 'description', edPin: 'scannerPin', edRecruiters: 'recruiters' };
   A.editor[map[id]] = e.target.value;
 }));
 
@@ -1601,7 +1907,11 @@ function parseTemplate(text) {
         p.timeText = v;
       } else if (k.indexOf('call') === 0) p.callTime = v;
       else if (k.indexOf('venue') === 0 || k.indexOf('location') === 0) p.venue = v;
-      else if (k.indexOf('wage') === 0 || k.indexOf('pay') === 0 || k.indexOf('allowance') === 0) p.wages = v.replace(/\.$/, '');
+      else if (k.indexOf('wage') === 0 || k.indexOf('pay') === 0 || k.indexOf('allowance') === 0) {
+        p.wages = v.replace(/\.$/, '');
+        const wm = p.wages.replace(/,/g, '').match(/(\d+(?:\.\d+)?)/);
+        if (wm) p.dailyWage = wm[1];
+      }
       else if (k.indexOf('pax') === 0 || k.indexOf('slot') === 0) p.pax = (v.match(/\d+/) || [''])[0];
     });
     return p;
@@ -1632,6 +1942,7 @@ async function saveEvent(status, btn) {
     if (!p.endDate) p.endDate = p.startDate;
     if (p.endDate < p.startDate) { msg('edMsg', 'The end date for ' + p.jobScope + ' is before its start date.'); return; }
     if (p.whatsapp && !/^https:\/\//i.test(p.whatsapp.trim())) { msg('edMsg', 'The WhatsApp link for ' + p.jobScope + ' must start with https://'); return; }
+    if (String(p.dailyWage == null ? '' : p.dailyWage).trim() !== '' && !(Number(p.dailyWage) >= 0)) { msg('edMsg', 'Please enter the daily wage for ' + p.jobScope + ' as a number, e.g. 70.'); return; }
   }
   await busy(btn, async () => {
     try {
@@ -1640,8 +1951,10 @@ async function saveEvent(status, btn) {
         phases: ed.phases.map(p => ({
           phaseId: p.phaseId, jobScope: p.jobScope, pax: Number(p.pax), dateText: p.dateText, timeText: p.timeText,
           callTime: p.callTime, venue: p.venue, wages: p.wages, conflicts: p.conflicts,
-          startDate: p.startDate, endDate: p.endDate, whatsapp: (p.whatsapp || '').trim()
-        }))
+          startDate: p.startDate, endDate: p.endDate, whatsapp: (p.whatsapp || '').trim(),
+          dailyWage: String(p.dailyWage == null ? '' : p.dailyWage).trim()
+        })),
+        recruiters: String(ed.recruiters || '').split('\n').map(s => s.trim()).filter(Boolean)
       });
       A.editor = null;
       showTab('events');
@@ -1674,49 +1987,153 @@ async function loadRegs() {
   } catch (err) { $('#regBody').innerHTML = ''; msg('regMsg', err.message); }
 }
 
+const shortDiet = s => String(s || '').replace(/^Other: /, '').replace(/\s*\(.*\)$/, '') || 'Not stated';
+function countBy(rows, f) {
+  const c = {};
+  rows.forEach(r => { const k = f(r) || 'Not stated'; c[k] = (c[k] || 0) + 1; });
+  return Object.keys(c).sort().map(k => esc(k) + ': ' + c[k] + ' pax').join('<br>');
+}
+function summaryHtml(d) {
+  const conf = d.registrations.filter(r => r.status === 'Confirmed');
+  const box = (title, rows) => '<div class="sumbox"><strong>' + esc(title) + ' (' + rows.length + ' pax)</strong>' +
+    (rows.length ? '<span class="muted">T-shirt</span><br>' + countBy(rows, r => r.shirtSize.replace(/^Other: /, '')) + '<br><span class="muted">Dietary</span><br>' + countBy(rows, r => shortDiet(r.dietary)) : '<span class="muted">No confirmed crew</span>') + '</div>';
+  // Event total counts each person once.
+  const seen = new Set(), people = conf.filter(r => !seen.has(r.crewId) && seen.add(r.crewId));
+  return '<h3 style="margin-top:4px">Summary (confirmed crew)</h3><div class="sumgrid">' + box('Whole event, each person once', people) +
+    d.phases.map(p => box(p.jobScope, conf.filter(r => r.phaseId === p.phaseId))).join('') + '</div>';
+}
+const CF_LABEL = { Pending: 'Waiting', Coming: 'Coming', Cannot: 'Cannot make it', 'No reply': 'No reply', Auto: 'Auto confirmed' };
+function regActions(r) {
+  const opts = r.status === 'Confirmed' ? [['job', 'Job confirmed (QR)'], ['confirm', 'Final attendance check'], ['welcome', 'Registration successful']]
+    : r.status === 'Backup' ? [['backup', 'Backup confirmation'], ['welcome', 'Registration successful']]
+    : r.status === 'Cancelled' ? [['cancel', 'Cancellation'], ['welcome', 'Registration successful']] : [];
+  const mail = opts.length && r.email ? '<div class="row" style="margin:0 0 6px;gap:4px;flex-wrap:nowrap"><select class="small" data-mailkind style="padding:5px;font-size:12px;width:auto">' +
+    opts.map(o => '<option value="' + o[0] + '">' + o[1] + '</option>').join('') + '</select><button type="button" class="small" data-send="' + esc(r.regId) + '">Send</button></div>' : '';
+  let btns = '';
+  if (r.status === 'Backup') btns += '<button type="button" class="small" data-promote="' + esc(r.regId) + '">Promote</button> ';
+  if (r.status === 'Confirmed' || r.status === 'Backup') btns += '<button type="button" class="small danger" data-cancel="' + esc(r.regId) + '">Cancel</button>';
+  else btns += '<span class="muted">' + esc(r.status) + '</span>';
+  btns += blButton(r.crewId, r.fullName, r.blacklisted);
+  return mail + btns + (r.cancelReason ? '<br><span class="muted">Reason: ' + esc(r.cancelReason) + '</span>' : '') +
+    (r.replacedBy ? '<br><span class="muted">Replaced: ' + esc(r.replacedBy) + '</span>' : '') +
+    (r.replacementOf ? '<br><span class="muted">Replacing ' + esc(r.replacementOf) + '</span>' : '');
+}
+function regTable(rows, backup) {
+  return '<div class="tablewrap"><table class="data"><thead><tr><th>Crew ID</th><th>Photo</th><th>Name</th><th>IC / Passport</th><th>Phone</th><th>WhatsApp username</th><th>Recruiter</th><th>Days</th>' +
+    (backup ? '' : '<th>Days worked</th><th>Final check</th>') + '<th>T-Shirt</th><th>Dietary</th><th>Health</th><th>Languages</th><th>Experience</th><th>Jobs before</th><th>Total jobs</th><th>Registered</th><th></th></tr></thead><tbody>' +
+    rows.map(r => '<tr class="' + (r.status === 'Cancelled' || r.status === 'Replaced' ? 'cancel' : r.walkin ? 'walkin' : '') + '"><td>' + esc(r.crewId) + '</td><td>' + viewLink(r.photoLink) + '</td><td>' + esc(r.fullName) +
+      (r.source === 'Walk-in' ? '<span class="tag walkin">Walk in</span>' : '') + (r.walkin ? '<span class="tag walkin">Details not complete</span>' : '') +
+      (r.blacklisted ? '<span class="tag black" title="' + esc(r.blacklistReason) + '">Blacklisted</span>' : '') +
+      (r.preferredName ? '<br><span class="muted">' + esc(r.preferredName) + '</span>' : '') +
+      '</td><td>' + esc(r.idNumber) + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.whatsappUser) + '</td><td>' + esc(r.recruiterName) + (r.waJoined ? '<br><span class="tag ok">Joined WhatsApp</span>' : '') +
+      (r.recruiterRemark ? '<br><span class="muted">' + esc(r.recruiterRemark) + '</span>' : '') + '</td><td>' + esc(r.days.join(', ')) + '</td>' +
+      (backup ? '' : '<td>' + r.daysCount + '</td><td>' + (r.status === 'Confirmed' ? esc(CF_LABEL[r.confirmStatus] || 'Not sent yet') : '') + '</td>') +
+      '<td>' + esc(r.shirtSize) + '</td><td>' + esc(r.dietary) + '</td><td>' + esc(r.healthCondition) + '</td><td>' + esc(r.languages) + '</td><td>' + esc(r.jobExperience) +
+      '</td><td>' + r.jobsBefore + '</td><td>' + r.jobsTotal + '</td><td>' + esc(fmtDate(r.timestamp)) + '</td><td>' + regActions(r) + '</td></tr>').join('') +
+    '</tbody></table></div>';
+}
 function renderRegs() {
   const d = A.regData;
   if (!d) return;
-  $('#regBody').innerHTML = d.phases.map(p => {
-    const rows = d.registrations.filter(r => r.phaseId === p.phaseId);
-    return '<h3>' + esc(p.jobScope) + ' <span class="muted" style="font-weight:400">' + p.filled + ' / ' + p.pax + ' &middot; ' + esc(dateLine(p)) + '</span></h3>' +
-      (rows.length ? '<div class="tablewrap"><table class="data"><thead><tr><th>Crew ID</th><th>Photo</th><th>Name</th><th>Phone</th><th>Days</th><th>Days worked</th><th>Jobs with us before</th><th>Total jobs</th><th>T-Shirt</th><th>Languages</th><th>Health</th><th>Dietary</th><th>Experience</th><th>Registered</th><th></th></tr></thead><tbody>' +
-        rows.map(r => '<tr class="' + (r.status !== 'Confirmed' ? 'cancel' : '') + '"><td>' + esc(r.crewId) + '</td><td>' + viewLink(r.photoLink) + '</td><td>' + esc(r.fullName) + (r.preferredName ? '<br><span class="muted">' + esc(r.preferredName) + '</span>' : '') +
-          '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.days.join(', ')) + '</td><td>' + r.daysCount + '</td><td>' + r.jobsBefore + '</td><td>' + r.jobsTotal + '</td><td>' + esc(r.shirtSize) + '</td><td>' + esc(r.languages) +
-          '</td><td>' + esc(r.healthCondition) + '</td><td>' + esc(r.dietary) + '</td><td>' + esc(r.jobExperience) + '</td><td>' + esc(fmtDate(r.timestamp)) + '</td><td>' +
-          (r.status === 'Confirmed' ? '<button type="button" class="small" data-resend="' + esc(r.crewId) + '">Resend email</button> <button type="button" class="small danger" data-cancel="' + esc(r.regId) + '">Cancel</button>' : esc(r.status)) +
-          (r.replacedBy ? '<br><span class="muted">Replaced: ' + esc(r.replacedBy) + '</span>' : '') +
-          (r.replacementOf ? '<br><span class="muted">Replacing ' + esc(r.replacementOf) + '</span>' : '') + '</td></tr>').join('') +
-        '</tbody></table></div>' : '<p class="muted">No registrations yet.</p>');
+  $('#regBody').innerHTML = summaryHtml(d) + d.phases.map(p => {
+    const rows = d.registrations.filter(r => r.phaseId === p.phaseId && r.status !== 'Backup');
+    const backups = d.registrations.filter(r => r.phaseId === p.phaseId && r.status === 'Backup');
+    return '<h3>' + esc(p.jobScope) + ' <span class="muted" style="font-weight:400">' + p.filled + ' / ' + p.pax + ' &middot; ' + esc(dateLine(p)) + (p.dailyWage ? ' &middot; RM' + p.dailyWage + '/day' : '') + '</span></h3>' +
+      (rows.length ? regTable(rows, false) : '<p class="muted">No registrations yet.</p>') +
+      (backups.length ? '<p style="margin:12px 0 4px"><strong>Backup list (' + backups.length + ')</strong> <span class="muted">Promote moves a backup into a free slot and emails their QR code.</span></p>' + regTable(backups, true) : '');
   }).join('');
 }
 
 $('#regEvent').addEventListener('change', loadRegs);
 $('#regRefresh').addEventListener('click', loadRegs);
 
+function blButton(crewId, name, on) {
+  return '<br><button type="button" class="small' + (on ? '' : ' danger') + '" style="margin-top:4px" data-bl="' + esc(crewId) + '" data-blname="' + esc(name) + '" data-blon="' + (on ? '1' : '') + '">' + (on ? 'Undo blacklist' : 'Blacklist') + '</button>';
+}
+async function toggleBlacklist(b, after, msgId) {
+  const on = !b.dataset.blon;
+  let reason = '';
+  if (on) {
+    reason = prompt('Blacklist ' + b.dataset.blname + '? They will not be able to sign in as returning crew, join as a backup or replace anyone. Walk ins are still allowed.\n\nType the reason (only the admin sees it):', '');
+    if (reason === null) return;
+    if (!reason.trim()) { msg(msgId, 'Please type a reason for the blacklist.'); return; }
+  } else if (!confirm('Undo the blacklist for ' + b.dataset.blname + '?')) return;
+  await busy(b, async () => {
+    try {
+      const r = await adminApi('adminBlacklist', { crewId: b.dataset.bl, on: on, reason: reason.trim() });
+      await after();
+      msg(msgId, on ? b.dataset.blname + ' is blacklisted.' + (r.activePlaces ? ' They still hold ' + r.activePlaces + ' place(s); cancel these by hand if needed.' : '') : 'Blacklist removed for ' + b.dataset.blname + '.', 'ok');
+    } catch (err) { msg(msgId, err.message); }
+  });
+}
+
+const CX = { regId: '' };
 $('#regBody').addEventListener('click', async e => {
-  const rs = e.target.closest('[data-resend]');
-  if (rs) {
-    await busy(rs, async () => {
-      try { await adminApi('adminResendEmail', { crewId: rs.dataset.resend, eventId: A.regData.event.eventId }); msg('regMsg', 'Job confirmation email sent again.', 'ok'); }
+  const bl = e.target.closest('[data-bl]');
+  if (bl) { await toggleBlacklist(bl, loadRegs, 'regMsg'); return; }
+  const sd = e.target.closest('[data-send]');
+  if (sd) {
+    const kind = $('[data-mailkind]', sd.parentNode).value;
+    const label = $('[data-mailkind]', sd.parentNode).selectedOptions[0].textContent;
+    if (kind === 'confirm' && !confirm('Send the final attendance check now? The crew will have 12 hours to reply, or their job is cancelled automatically.')) return;
+    await busy(sd, async () => {
+      try { await adminApi('adminSendEmail', { regId: sd.dataset.send, kind: kind }); if (kind === 'confirm') await loadRegs(); msg('regMsg', '"' + label + '" email sent.', 'ok'); }
+      catch (err) { msg('regMsg', err.message); }
+    });
+    return;
+  }
+  const pr = e.target.closest('[data-promote]');
+  if (pr) {
+    if (!confirm('Promote this backup crew? They will take a free slot and get the Job confirmed email with their QR code and the WhatsApp link.')) return;
+    await busy(pr, async () => {
+      try { const r = await adminApi('adminPromote', { regId: pr.dataset.promote }); await loadRegs(); msg('regMsg', 'Promoted.' + (r.emailed ? ' The Job confirmed email has been sent.' : ' The email could not be sent, please check their email address.'), r.emailed ? 'ok' : 'err'); }
       catch (err) { msg('regMsg', err.message); }
     });
     return;
   }
   const b = e.target.closest('[data-cancel]');
   if (!b) return;
-  if (!confirm('Cancel this registration? The slot will open up again for other crew.')) return;
-  await busy(b, async () => {
-    try { await adminApi('adminCancelRegistration', { regId: b.dataset.cancel }); await loadRegs(); }
-    catch (err) { msg('regMsg', err.message); }
+  const r = A.regData.registrations.find(x => x.regId === b.dataset.cancel);
+  CX.regId = b.dataset.cancel;
+  $('#cxWho').textContent = r.fullName + ', ' + r.jobScope + (r.status === 'Backup' ? ' (backup)' : '') + '. A confirmed slot opens up again for other crew.';
+  $('#cxReason').innerHTML = A.regData.cancelReasons.map(x => '<option>' + esc(x) + '</option>').join('') + '<option value="__other">Other (type below)</option>';
+  $('#cxOther').value = ''; $('#cxOtherWrap').classList.add('hidden'); $('#cxNotify').checked = !!r.email; $('#cxNotify').disabled = !r.email;
+  msg('cxMsg', '');
+  $('#cancelModal').classList.remove('hidden');
+});
+$('#cxReason').addEventListener('change', () => $('#cxOtherWrap').classList.toggle('hidden', $('#cxReason').value !== '__other'));
+$('#cxClose').addEventListener('click', () => $('#cancelModal').classList.add('hidden'));
+$('#cxGo').addEventListener('click', async e => {
+  const reason = $('#cxReason').value === '__other' ? $('#cxOther').value.trim() : $('#cxReason').value;
+  if (!reason) { msg('cxMsg', 'Please type the reason.'); return; }
+  await busy(e.currentTarget, async () => {
+    try {
+      const r = await adminApi('adminCancelRegistration', { regId: CX.regId, reason: reason, notify: $('#cxNotify').checked });
+      $('#cancelModal').classList.add('hidden');
+      await loadRegs();
+      msg('regMsg', 'Cancelled.' + ($('#cxNotify').checked ? (r.emailed ? ' The crew has been emailed.' : ' The email could not be sent.') : ''), 'ok');
+    } catch (err) { msg('cxMsg', err.message); }
   });
+});
+
+$('#regPayout').addEventListener('click', async e => {
+  msg('regMsg', ''); $('#regLinks').innerHTML = '';
+  const id = $('#regEvent').value;
+  if (!id) { msg('regMsg', 'Choose an event first.'); return; }
+  await busy(e.currentTarget, async () => {
+    try {
+      const r = await adminApi('adminGeneratePayout', { eventId: id });
+      $('#regLinks').innerHTML = '<div class="msg ok">Payout sheet saved in the "Payouts" folder in Google Drive: <a href="' + esc(r.sheetUrl) + '" target="_blank" rel="noopener">Open Google Sheet</a>. ' +
+        r.crewCount + ' crew, total payable RM' + r.total + ', recruiter fees RM' + r.feeTotal + '. Click again any time to refresh it.</div>';
+    } catch (err) { msg('regMsg', err.message); }
+  }, 'Creating...');
 });
 
 $('#regCsv').addEventListener('click', () => {
   const d = A.regData;
   if (!d) { msg('regMsg', 'Choose an event first.'); return; }
-  const rows = [['Event', 'Job scope', 'Status', 'Crew ID', 'Full name', 'Preferred name', 'Phone', 'Email', 'Gender', 'T-Shirt', 'Languages', 'Health', 'Dietary', 'Jobs with us before', 'Total jobs', 'Experience', 'Photo', 'Days', 'Days worked', 'Replacing', 'Replaced', 'Registered at']];
-  d.registrations.forEach(r => rows.push([d.event.name, r.jobScope, r.status, r.crewId, r.fullName, r.preferredName, r.phone, r.email, r.gender, r.shirtSize, r.languages, r.healthCondition, r.dietary, r.jobsBefore, r.jobsTotal, r.jobExperience, r.photoLink, r.days.join(', '), r.daysCount, r.replacementOf, r.replacedBy, fmtDate(r.timestamp)]));
+  const rows = [['Event', 'Job scope', 'Status', 'Source', 'Crew ID', 'Full name', 'Preferred name', 'IC / Passport', 'Phone', 'WhatsApp username', 'Email', 'Recruiter', 'Joined WhatsApp', 'Recruiter remark', 'Final check', 'Cancel reason', 'Gender', 'T-Shirt', 'Languages', 'Health', 'Dietary', 'Jobs with us before', 'Total jobs', 'Experience', 'Photo', 'Days', 'Days worked', 'Replacing', 'Replaced', 'Registered at']];
+  d.registrations.forEach(r => rows.push([d.event.name, r.jobScope, r.status, r.source, r.crewId, r.fullName, r.preferredName, r.idNumber, r.phone, r.whatsappUser, r.email, r.recruiterName, r.waJoined ? 'Yes' : '', r.recruiterRemark, CF_LABEL[r.confirmStatus] || '', r.cancelReason, r.gender, r.shirtSize, r.languages, r.healthCondition, r.dietary, r.jobsBefore, r.jobsTotal, r.jobExperience, r.photoLink, r.days.join(', '), r.daysCount, r.replacementOf, r.replacedBy, fmtDate(r.timestamp)]));
   downloadCsv(d.event.name.replace(/[^\w ]+/g, '').trim() + ' registrations.csv', rows);
 });
 
@@ -1730,11 +2147,12 @@ async function loadCrew() {
 
 function renderCrew() {
   const q = $('#crewSearch').value.trim().toLowerCase();
-  const list = A.crew.filter(c => !q || [c.crewId, c.fullName, c.preferredName, c.phone, c.email].join(' ').toLowerCase().indexOf(q) >= 0);
+  const list = A.crew.filter(c => !q || [c.crewId, c.fullName, c.preferredName, c.phone, c.email, c.whatsappUser, c.idNumber].join(' ').toLowerCase().indexOf(q) >= 0);
   if (!list.length) { $('#crewBody').innerHTML = '<p class="muted">No crew found.</p>'; return; }
-  $('#crewBody').innerHTML = '<table class="data"><thead><tr><th>Crew ID</th><th>Photo</th><th>Name</th><th>IC / Passport</th><th>Nationality</th><th>Phone</th><th>Email</th><th>Email status</th><th>T-Shirt</th><th>Languages</th><th>Health</th><th>Dietary</th><th>Total jobs</th><th>IC copy</th><th>Signed agreement</th></tr></thead><tbody>' +
-    list.map(c => '<tr><td>' + esc(c.crewId) + '</td><td>' + viewLink(c.photoLink) + '</td><td>' + esc(c.fullName) + (c.preferredName ? '<br><span class="muted">' + esc(c.preferredName) + '</span>' : '') +
-      '</td><td>' + esc(c.idNumber) + '</td><td>' + esc(c.nationality) + '</td><td>' + esc(c.phone) + '</td><td' + (c.emailStatus && c.emailStatus !== 'Sent' ? ' class="redcell"' : '') + '>' + esc(c.email) +
+  $('#crewBody').innerHTML = '<table class="data"><thead><tr><th>Crew ID</th><th>Photo</th><th>Name</th><th>IC / Passport</th><th>Nationality</th><th>Phone</th><th>WhatsApp username</th><th>Email</th><th>Email status</th><th>T-Shirt</th><th>Languages</th><th>Health</th><th>Dietary</th><th>Total jobs</th><th>IC copy</th><th>Signed agreement</th></tr></thead><tbody>' +
+    list.map(c => '<tr' + (c.walkin ? ' class="walkin"' : '') + '><td>' + esc(c.crewId) + '</td><td>' + viewLink(c.photoLink) + '</td><td' + (c.walkin ? ' class="redcell"' : '') + '>' + esc(c.fullName) + (c.walkin ? '<br><strong>Walk in: details not complete</strong>' : '') + (c.preferredName ? '<br><span class="muted">' + esc(c.preferredName) + '</span>' : '') +
+      (c.blacklisted ? '<br><span class="tag black">Blacklisted ' + esc(c.blacklistedAt) + '</span><br><span class="muted">' + esc(c.blacklistReason) + '</span>' : '') + blButton(c.crewId, c.fullName, c.blacklisted) +
+      '</td><td>' + esc(c.idNumber) + '</td><td>' + esc(c.nationality) + '</td><td>' + esc(c.phone) + '</td><td>' + esc(c.whatsappUser) + '</td><td' + (c.emailStatus && c.emailStatus !== 'Sent' ? ' class="redcell"' : '') + '>' + esc(c.email) +
       '</td><td' + (c.emailStatus && c.emailStatus !== 'Sent' ? ' class="redcell"' : '') + '>' + esc(c.emailStatus || '') + '<br><button type="button" class="small" data-welcome="' + esc(c.crewId) + '">Resend welcome email</button></td><td>' + esc(c.shirtSize) +
       '</td><td>' + esc(c.languages) + '</td><td>' + esc(c.healthCondition) + '</td><td>' + esc(c.dietary) + '</td><td>' + c.jobsTotal +
       '</td><td>' + (c.icCopyLinks.length ? c.icCopyLinks.map((u, i) => '<a href="' + esc(u) + '" target="_blank" rel="noopener">File ' + (i + 1) + '</a>').join(' ') : '<span class="muted">None</span>') + '</td><td>' + viewLink(c.signedAgreementLink) + ' <span class="muted">v' + c.signedVersion + '</span></td></tr>').join('') +
@@ -1743,6 +2161,8 @@ function renderCrew() {
 
 $('#crewSearch').addEventListener('input', renderCrew);
 $('#crewBody').addEventListener('click', async e => {
+  const bl = e.target.closest('[data-bl]');
+  if (bl) { await toggleBlacklist(bl, loadCrew, 'crewMsg'); return; }
   const b = e.target.closest('[data-welcome]');
   if (!b) return;
   await busy(b, async () => {
@@ -1752,8 +2172,8 @@ $('#crewBody').addEventListener('click', async e => {
 });
 $('#crewCsv').addEventListener('click', () => {
   if (!A.crew.length) { msg('crewMsg', 'No crew to download yet.'); return; }
-  const rows = [['Crew ID', 'Full name', 'Preferred name', 'IC / Passport', 'Nationality', 'Email', 'Email status', 'Phone', 'Gender', 'Languages', 'T-Shirt', 'Health', 'Dietary', 'Experience', 'Bank', 'Account number', 'Account holder', 'Total jobs', 'Agreement version', 'Photo', 'IC copy', 'Signed agreement', 'Joined']];
-  A.crew.forEach(c => rows.push([c.crewId, c.fullName, c.preferredName, c.idNumber, c.nationality, c.email, c.emailStatus, c.phone, c.gender, c.languages, c.shirtSize, c.healthCondition, c.dietary, c.jobExperience, c.bankName, c.bankAccount, c.bankHolder, c.jobsTotal, c.signedVersion, c.photoLink, c.icCopyLinks.join(' '), c.signedAgreementLink, fmtDate(c.createdAt)]));
+  const rows = [['Crew ID', 'Full name', 'Preferred name', 'IC / Passport', 'Nationality', 'Email', 'Email status', 'Phone', 'WhatsApp username', 'Walk in (details not complete)', 'Blacklisted', 'Blacklist reason', 'Gender', 'Languages', 'T-Shirt', 'Health', 'Dietary', 'Experience', 'Bank', 'Account number', 'Account holder', 'Total jobs', 'Agreement version', 'Photo', 'IC copy', 'Signed agreement', 'Joined']];
+  A.crew.forEach(c => rows.push([c.crewId, c.fullName, c.preferredName, c.idNumber, c.nationality, c.email, c.emailStatus, c.phone, c.whatsappUser, c.walkin ? 'Yes' : '', c.blacklisted ? c.blacklistedAt || 'Yes' : '', c.blacklistReason, c.gender, c.languages, c.shirtSize, c.healthCondition, c.dietary, c.jobExperience, c.bankName, c.bankAccount, c.bankHolder, c.jobsTotal, c.signedVersion, c.photoLink, c.icCopyLinks.join(' '), c.signedAgreementLink, fmtDate(c.createdAt)]));
   downloadCsv('Marathon crew list.csv', rows);
 });
 
@@ -1829,8 +2249,8 @@ function renderAttendance(d) {
   d.rows.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
   $('#atBody').innerHTML = '<h3>' + esc(d.jobScope) + ' &middot; ' + esc(d.dayLabel) + '</h3><p class="muted">' +
     Object.keys(counts).map(k => counts[k] + ' ' + k).join(', ') + (d.rollCallHeld ? ' &middot; Roll calls held: ' + (d.rollCallsHeld || []).map(t => ({ RollCall: '1', RollCall2: '2', RollCall3: '3' })[t]).join(', ') : ' &middot; No roll call held yet') + '</p>' +
-    (d.rows.length ? '<table class="data"><thead><tr><th>No.</th><th>Name</th><th>Phone</th><th>Check in</th><th>Roll call 1</th><th>Roll call 2</th><th>Roll call 3</th><th>Check out</th><th>Status</th></tr></thead><tbody>' +
-      d.rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name) + (r.replacement ? ' <span class="muted">(replacement)</span>' : '') + '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.checkIn) +
+    (d.rows.length ? '<table class="data"><thead><tr><th>No.</th><th>Name</th><th>IC / Passport</th><th>Phone</th><th>Gender</th><th>T-shirt</th><th>Check in</th><th>Roll call 1</th><th>Roll call 2</th><th>Roll call 3</th><th>Check out</th><th>Status</th></tr></thead><tbody>' +
+      d.rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name) + (r.replacement ? ' <span class="muted">(replacement)</span>' : '') + (r.walkin ? '<span class="tag walkin">Walk in</span>' : '') + '</td><td>' + esc(r.ic || '') + '</td><td>' + esc(r.phone || r.whatsappUser || '') + '</td><td>' + esc(r.gender || '') + '</td><td>' + esc(r.shirtSize || '') + '</td><td>' + esc(r.checkIn) +
         '</td>' + [0, 1, 2].map(k => '<td>' + esc(r.rollCalls[k] || '') + '</td>').join('') + '<td>' + esc(r.checkOut) + '</td><td><span class="st ' + esc(r.status) + '">' + esc(r.status) + '</span>' +
         (r.missing.length ? '<br><span class="muted">Missing ' + esc(r.missing.join(', ')) + '</span>' : '') + '</td></tr>').join('') + '</tbody></table>'
       : '<p class="muted">No crew registered for this day.</p>');
@@ -1876,7 +2296,7 @@ async function showQrOnDone(token, email) {
     const box = document.createElement('div');
     box.className = 'qrbox';
     box.innerHTML = '<strong>Your check in QR code</strong><br><img alt="Your QR code" src="' + q.createDataURL(8, 4) + '"><div class="muted">Code: <strong>' + esc(token) + '</strong></div>' +
-      '<p class="muted" style="margin:8px 0 0">Show this at check in, every roll call and check out. A copy has been emailed to ' + esc(email || 'you') + '. Please take a screenshot too.</p>';
+      '<p class="muted" style="margin:8px 0 0">Show this at check in, every roll call and check out. ' + (email ? 'A copy has been emailed to ' + esc(email) + '. Please take a screenshot too.' : 'Please take a screenshot now.') + '</p>';
     $('#doneBody').appendChild(box);
   } catch (_) { /* the QR code is still in the email */ }
 }
@@ -2002,6 +2422,19 @@ if (params.get('scan')) {
   $('#footLinks').innerHTML = '';
   $('#scPin').value = store('scanPin');
   $('#scName').value = store('scanName');
+} else if (params.get('recruiter')) {
+  $('#crewView').classList.add('hidden');
+  $('#recruiterView').classList.remove('hidden');
+  $('#main').classList.add('wide');
+  $('#pageTitle').textContent = 'Recruiter Crew List';
+  $('#pageSub').textContent = 'The crew who chose you as their recruiter';
+  $('#footLinks').innerHTML = '';
+  loadRecruiter();
+} else if (params.get('confirm')) {
+  $('#pageTitle').textContent = 'Confirm Your Attendance';
+  $('#pageSub').textContent = 'Please reply within 12 hours';
+  $('#footLinks').innerHTML = '';
+  startConfirm();
 } else if (params.get('admin')) {
   $('#crewView').classList.add('hidden');
   $('#adminView').classList.remove('hidden');
@@ -2020,6 +2453,23 @@ if (params.get('scan')) {
   wireFile('icCopy', true);
   clearUPhoto = wireFile('uPhoto');
   pad = SigPad($('#sig'), $('#sigHint'));
+  ['input', 'change'].forEach(t => $('#stepWalkin').addEventListener(t, e => {
+    const w = e.target.closest('[data-wrap]');
+    if (w) w.classList.remove('invalid');
+    // Phone or WhatsApp username: filling either one clears the other's error.
+    if (e.target.id === 'w_whatsappUser' || e.target.id === 'w_phone') $$('[data-wrap="w_phone"], [data-wrap="w_whatsappUser"]').forEach(x => x.classList.remove('invalid'));
+  }));
+  if (KIND === 'walkin') {
+    $('#pageTitle').textContent = 'Walk In Crew Registration';
+    $('#pageSub').textContent = 'For crew joining on the event day';
+    startWalkin();
+  } else if (KIND === 'backup') {
+    $('#pageTitle').textContent = 'Backup Crew Registration';
+    $('#pageSub').textContent = 'Register as a backup. We will contact you if a place opens up.';
+    $('#backupNote').classList.remove('hidden');
+    $('[data-wrap="replacing"]').classList.add('hidden');
+    $('#replaceFields').classList.add('hidden');
+  }
 }
 </script>
 </body>
