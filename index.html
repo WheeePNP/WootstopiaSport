@@ -735,7 +735,7 @@ const LANG_COLS = ['1st Choice', '2nd Choice', '3rd Choice', 'Not at all'];
 const PILL_OPTIONS = {
   nationality: ['Malaysian', 'Other'],
   replacing: ['No', 'Yes'],
-  gender: ['Male', 'Female', 'Prefer not to say'],
+  gender: ['Male', 'Female'],
   shirtSize: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Other'],
   healthCondition: ['Good', 'Other'],
   dietary: ['None (Can consume Non-Vegetarian and Halal food)', 'Vegetarian (Can consume five pungent plants)', 'Other']
@@ -1188,19 +1188,36 @@ function renderPhases() {
     const sel = C.selected.has(p.phaseId);
     const clash = p.conflicts.filter(o => o !== p.phaseId && (C.selected.has(o) || C.held.has(o)));
     const full = p.remaining <= 0 && KIND !== 'backup';
-    const dis = held || (!sel && (full || clash.length > 0));
+    const gs = genderState(p);
+    const dis = held || (!sel && (full || gs.closed || clash.length > 0));
     let note = '';
     if (held) note = 'You are already registered for this';
     else if (!sel && full) note = 'Full';
+    else if (!sel && gs.closed) note = gs.note;
     else if (!sel && clash.length) note = 'Cannot be taken together with ' + clash.map(nameOf).join(', ');
     const cls = 'phase' + (held ? ' held' : dis ? ' dis' : '') + (sel ? ' sel' : '');
     return '<label class="' + cls + '">' +
       '<input type="checkbox" data-phase="' + esc(p.phaseId) + '"' + (sel || held ? ' checked' : '') + (dis ? ' disabled' : '') + '>' +
       '<div class="body"><div class="t">' + esc(p.jobScope) + '</div><div class="m">' + phaseMeta(p) + '</div>' +
       (note ? '<div class="note">' + esc(note) + '</div>' : '') + '</div>' +
-      '<span class="slots">' + (KIND === 'backup' ? 'Backup' : full ? 'Full' : p.remaining + ' of ' + p.pax + ' left') + '</span></label>';
+      '<span class="slots">' + (KIND === 'backup' ? 'Backup' : full ? 'Full' : gs.badge ? gs.badge : gs.left !== null ? Math.min(gs.left, p.remaining) + ' ' + C.gender.toLowerCase() + ' left' : p.remaining + ' of ' + p.pax + ' left') + '</span></label>';
   }).join('');
 }
+
+// Male and female slots set by the admin. Backups are not limited.
+function genderState(p) {
+  const none = { closed: false, note: '', left: null };
+  if (KIND === 'backup' || (p.maleSlots == null && p.femaleSlots == null)) return none;
+  const g = C.gender;
+  if (g !== 'Male' && g !== 'Female') return { closed: true, note: 'Has male and female slots. Please contact us to update the gender on your record.', left: null };
+  const lim = g === 'Male' ? p.maleSlots : p.femaleSlots;
+  if (lim == null) return none;
+  if (lim === 0) return { closed: true, note: 'For ' + (g === 'Male' ? 'female' : 'male') + ' crew only', left: 0, badge: g === 'Male' ? 'Female only' : 'Male only' };
+  const left = Math.max(0, lim - (g === 'Male' ? p.maleFilled : p.femaleFilled));
+  return left <= 0 ? { closed: true, note: 'Full for ' + g.toLowerCase() + ' crew', left: 0, badge: 'Full' } : { closed: false, note: '', left: left };
+}
+const splitText = p => (p.maleSlots == null && p.femaleSlots == null) ? '' :
+  'Male ' + p.maleFilled + (p.maleSlots == null ? '' : ' / ' + p.maleSlots) + ', Female ' + p.femaleFilled + (p.femaleSlots == null ? '' : ' / ' + p.femaleSlots);
 
 function isReplacing() { return KIND !== 'backup' && pillValue('replacing') === 'Yes'; }
 function onReplacingChange() {
@@ -1272,6 +1289,7 @@ $('#formReturning').addEventListener('submit', async e => {
       if (!/^\d{4}$/.test(C.phoneLast4)) throw new Error('Please enter the last 4 digits of your phone number.');
       C.crew = await api('verifyCrew', { idNumber: C.idNumber, phoneLast4: C.phoneLast4 });
       C.held = new Set(C.crew.held);
+      C.gender = C.crew.gender || '';
       resetReplacing();
       $('#welcomeLine').textContent = 'Welcome back, ' + C.crew.fullName + '.';
       $('#welcomeLine').classList.remove('hidden');
@@ -1287,6 +1305,7 @@ $('#btnDetailsNext').addEventListener('click', async e => {
   const d = collectDetails();
   if (!d) { msg('dMsg', 'Please fix the highlighted fields above.'); return; }
   C.details = d;
+  C.gender = d.gender;
   await busy(e.currentTarget, async () => {
     try {
       const chk = await api('checkId', { idNumber: d.idNumber });
@@ -1479,6 +1498,7 @@ $('#btnAgain').addEventListener('click', async e => {
       C.history = ['stepStart'];
       const v = await api('verifyCrew', { idNumber: C.idNumber, phoneLast4: C.phoneLast4 });
       C.held = new Set(v.held);
+      C.gender = v.gender || '';
       resetReplacing();
       await loadEvents();
       goStep('stepEvent', true);
@@ -1702,7 +1722,7 @@ function renderAdminEvents() {
       '<button type="button" class="small" data-act="regs" data-id="' + esc(ev.eventId) + '">Registrations</button>' +
       '<button type="button" class="small danger" data-act="delete" data-id="' + esc(ev.eventId) + '">Delete</button>' +
       '</div></div><div style="margin-top:10px">' +
-      ev.phases.map(p => '<div class="ph-row"><span>' + esc(p.jobScope) + (dateLine(p) ? ' <span class="muted">' + esc(dateLine(p)) + '</span>' : '') + (p.whatsapp ? '' : ' <span class="badge">No WhatsApp link</span>') + (p.dailyWage ? '' : ' <span class="badge">No daily wage</span>') + '</span><span>' + p.filled + ' / ' + p.pax + '</span></div>').join('') +
+      ev.phases.map(p => '<div class="ph-row"><span>' + esc(p.jobScope) + (dateLine(p) ? ' <span class="muted">' + esc(dateLine(p)) + '</span>' : '') + (p.whatsapp ? '' : ' <span class="badge">No WhatsApp link</span>') + (p.dailyWage ? '' : ' <span class="badge">No daily wage</span>') + '</span><span>' + p.filled + ' / ' + p.pax + (splitText(p) ? ' <span class="muted">(' + esc(splitText(p)) + ')</span>' : '') + '</span></div>').join('') +
       '</div>' + ((ev.recruiters || []).length ? '<div class="linkrow"><strong>Recruiter links:</strong>' + ev.recruiters.map(r => '<button type="button" class="small" data-act="reclink" data-id="' + esc(ev.eventId) + '" data-token="' + esc(r.token) + '" data-name="' + esc(r.name) + '">' + esc(r.name) + '</button>').join('') + '</div>'
         : '<div class="linkrow muted">No recruiters yet. Add them in Edit.</div>') + '</div>';
   }).join('');
@@ -1748,7 +1768,7 @@ $('#evList').addEventListener('click', async e => {
 
 /* ----- Event editor ----- */
 function blankPhase() {
-  return { phaseId: newPhaseId(), jobScope: '', pax: '', startDate: '', endDate: '', dateText: '', timeText: '', callTime: '', venue: '', wages: '', dailyWage: '', whatsapp: '', conflicts: [], filled: 0 };
+  return { phaseId: newPhaseId(), jobScope: '', pax: '', maleSlots: '', femaleSlots: '', startDate: '', endDate: '', dateText: '', timeText: '', callTime: '', venue: '', wages: '', dailyWage: '', whatsapp: '', conflicts: [], filled: 0 };
 }
 function newEditor() {
   A.editor = { eventId: '', name: '', location: '', description: '', scannerPin: '', recruiters: '', status: 'Paused', phases: [blankPhase()] };
@@ -1780,6 +1800,8 @@ function fillEditor() {
 const PHASE_FIELDS = [
   ['jobScope', 'Job scope', 'e.g. Goodie Prepack', 'text'],
   ['pax', 'Slots (pax)', '20', 'number'],
+  ['maleSlots', 'Male slots (blank = no limit)', 'e.g. 12', 'number'],
+  ['femaleSlots', 'Female slots (blank = no limit)', 'e.g. 8, or 0 for male only', 'number'],
   ['startDate', 'Start date', '', 'date'],
   ['endDate', 'End date', '', 'date'],
   ['dateText', 'Date note (optional)', 'e.g. Tue & Wed', 'text'],
@@ -1800,8 +1822,8 @@ function renderPhaseEditors() {
     '<button type="button" class="small danger" data-remove="' + i + '"' + (p.filled ? ' disabled title="Crew have registered for this job scope"' : '') + '>Remove</button></span></div>' +
     '<div class="grid2">' + PHASE_FIELDS.map(f =>
       '<label class="f">' + f[1] + (REQUIRED_PHASE_FIELDS.indexOf(f[0]) >= 0 ? ' <span class="req">*</span>' : '') +
-      '<input data-i="' + i + '" data-f="' + f[0] + '" type="' + f[3] + '"' + (f[0] === 'pax' ? ' min="' + Math.max(1, p.filled || 0) + '"' : f[3] === 'number' ? ' min="0" step="0.01"' : '') +
-      ' placeholder="' + esc(f[2]) + '" value="' + esc(p[f[0]]) + '"></label>').join('') +
+      '<input data-i="' + i + '" data-f="' + f[0] + '" type="' + f[3] + '"' + (f[0] === 'pax' ? ' min="' + Math.max(1, p.filled || 0) + '"' : /Slots$/.test(f[0]) ? ' min="0" step="1"' : f[3] === 'number' ? ' min="0" step="0.01"' : '') +
+      ' placeholder="' + esc(f[2]) + '" value="' + esc(p[f[0]] == null ? '' : p[f[0]]) + '"></label>').join('') +
     '</div></div>').join('');
 }
 
@@ -1895,6 +1917,9 @@ function parseTemplate(text) {
         const pm = v.match(/\[\s*(\d+)\s*pax\s*\]/i) || v.match(/\(\s*(\d+)\s*pax\s*\)/i);
         if (pm) { p.pax = pm[1]; v = v.replace(pm[0], '').trim(); }
         p.jobScope = v;
+        // "(MALE ONLY)" or "(FEMALE ONLY)" in the name sets the other gender's slots to 0.
+        if (/\bfemale only\b/i.test(v)) p.maleSlots = '0';
+        else if (/\bmale only\b/i.test(v)) p.femaleSlots = '0';
       } else if (k.indexOf('date') === 0) {
         const r = parseDateRange(v);
         if (r) { p.startDate = r[0]; p.endDate = r[1]; }
@@ -1943,6 +1968,10 @@ async function saveEvent(status, btn) {
     if (p.endDate < p.startDate) { msg('edMsg', 'The end date for ' + p.jobScope + ' is before its start date.'); return; }
     if (p.whatsapp && !/^https:\/\//i.test(p.whatsapp.trim())) { msg('edMsg', 'The WhatsApp link for ' + p.jobScope + ' must start with https://'); return; }
     if (String(p.dailyWage == null ? '' : p.dailyWage).trim() !== '' && !(Number(p.dailyWage) >= 0)) { msg('edMsg', 'Please enter the daily wage for ' + p.jobScope + ' as a number, e.g. 70.'); return; }
+    for (const [k, lab] of [['maleSlots', 'male'], ['femaleSlots', 'female']]) {
+      const sv = String(p[k] == null ? '' : p[k]).trim();
+      if (sv !== '' && !(Number.isInteger(Number(sv)) && Number(sv) >= 0 && Number(sv) <= Number(p.pax))) { msg('edMsg', 'The ' + lab + ' slots for ' + p.jobScope + ' must be a whole number from 0 to ' + p.pax + ', or blank for no limit.'); return; }
+    }
   }
   await busy(btn, async () => {
     try {
@@ -1952,7 +1981,8 @@ async function saveEvent(status, btn) {
           phaseId: p.phaseId, jobScope: p.jobScope, pax: Number(p.pax), dateText: p.dateText, timeText: p.timeText,
           callTime: p.callTime, venue: p.venue, wages: p.wages, conflicts: p.conflicts,
           startDate: p.startDate, endDate: p.endDate, whatsapp: (p.whatsapp || '').trim(),
-          dailyWage: String(p.dailyWage == null ? '' : p.dailyWage).trim()
+          dailyWage: String(p.dailyWage == null ? '' : p.dailyWage).trim(),
+          maleSlots: String(p.maleSlots == null ? '' : p.maleSlots).trim(), femaleSlots: String(p.femaleSlots == null ? '' : p.femaleSlots).trim()
         })),
         recruiters: String(ed.recruiters || '').split('\n').map(s => s.trim()).filter(Boolean)
       });
@@ -2038,7 +2068,7 @@ function renderRegs() {
   $('#regBody').innerHTML = summaryHtml(d) + d.phases.map(p => {
     const rows = d.registrations.filter(r => r.phaseId === p.phaseId && r.status !== 'Backup');
     const backups = d.registrations.filter(r => r.phaseId === p.phaseId && r.status === 'Backup');
-    return '<h3>' + esc(p.jobScope) + ' <span class="muted" style="font-weight:400">' + p.filled + ' / ' + p.pax + ' &middot; ' + esc(dateLine(p)) + (p.dailyWage ? ' &middot; RM' + p.dailyWage + '/day' : '') + '</span></h3>' +
+    return '<h3>' + esc(p.jobScope) + ' <span class="muted" style="font-weight:400">' + p.filled + ' / ' + p.pax + (splitText(p) ? ' (' + esc(splitText(p)) + ')' : '') + ' &middot; ' + esc(dateLine(p)) + (p.dailyWage ? ' &middot; RM' + p.dailyWage + '/day' : '') + '</span></h3>' +
       (rows.length ? regTable(rows, false) : '<p class="muted">No registrations yet.</p>') +
       (backups.length ? '<p style="margin:12px 0 4px"><strong>Backup list (' + backups.length + ')</strong> <span class="muted">Promote moves a backup into a free slot and emails their QR code.</span></p>' + regTable(backups, true) : '');
   }).join('');
