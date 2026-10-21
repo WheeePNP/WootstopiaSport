@@ -197,12 +197,19 @@
   .sumgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 10px 0 6px; }
   .sumbox { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 13px; background: #fafaf8; }
   .sumbox strong { display: block; font-family: "Poppins", sans-serif; color: var(--navy); margin-bottom: 4px; }
+  .sumbox .sumhead { display: block; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; margin: 8px 0 4px; }
+  .sumbox .sumhead.shirt { color: var(--navy); }
+  .sumbox .sumhead.diet { color: #b35c00; }
+  .chip { display: inline-block; border-radius: 999px; padding: 2px 10px; margin: 0 4px 4px 0; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  .chip.shirt { background: #e3ebf3; color: var(--navy); }
+  .chip.diet { background: #ffe7c7; color: #8a4500; border: 1px solid #f0b46a; }
   .linkrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; margin-top: 8px; }
   .cfbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   .cfbtns button { padding: 16px 10px; font-size: 16px; }
   .cfbtns .yes { background: #1f8a4c; color: #fff; border-color: #1f8a4c; }
   .cfbtns .no { background: #fff; color: var(--bad); border-color: var(--bad); }
   .rv-remark { min-width: 140px; padding: 6px 8px; font-size: 13px; }
+  .markbtn { padding: 3px 8px; font-size: 12px; border-radius: 6px; color: var(--maroon); border-color: var(--maroon); }
 </style>
 </head>
 <body>
@@ -531,6 +538,49 @@
       <div id="rvMsg"></div>
       <div class="row"><button type="button" id="rvRefresh">Refresh</button></div>
     </div>
+    <div class="card">
+      <h2>Backups for this event</h2>
+      <p class="sub">Backups from every recruiter. Promote moves a backup into a free slot and emails them their QR code and the WhatsApp link. Please WhatsApp or call them as well.</p>
+      <div id="rvBackups" class="tablewrap"></div>
+    </div>
+    <div class="modal hidden" id="rvModal" role="dialog" aria-modal="true" aria-labelledby="rvmTitle">
+      <div class="box">
+        <h2 id="rvmTitle">Remove crew</h2>
+        <p class="sub" id="rvmWho"></p>
+        <label class="f">Reason<select id="rvmReason"></select></label>
+        <label class="f hidden" id="rvmOtherWrap">Type the reason<input id="rvmOther" maxlength="250"></label>
+        <p class="muted" style="font-size:13px">The crew gets a cancellation email with this reason, and their slot opens for a backup.</p>
+        <div id="rvmMsg"></div>
+        <div class="row end"><button type="button" id="rvmClose">Back</button><button type="button" class="primary" id="rvmGo">Remove</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= LEAD VIEW (link with ?lead=1, same PIN as the scanner) ================= -->
+  <section id="leadView" class="hidden">
+    <div class="card" id="leadLogin">
+      <h2>Lead view</h2>
+      <p class="sub">See your crew's check in, roll call and check out status. Use the same PIN as the scanner.</p>
+      <form id="formLeadLogin" novalidate>
+        <div class="field"><label for="ldPin">Scanner PIN <span class="req">*</span></label><input id="ldPin" autocomplete="off" maxlength="20"></div>
+        <div class="field"><label for="ldName">Your name <span class="req">*</span></label><input id="ldName" maxlength="60" autocomplete="name"><span class="hint">Recorded when you mark someone by hand.</span></div>
+        <div id="ldLoginMsg"></div>
+        <div class="row"><button type="submit" class="primary">Open</button></div>
+      </form>
+    </div>
+    <div class="card hidden" id="leadPanel">
+      <div class="row" style="margin-top:0;justify-content:space-between">
+        <div><strong id="ldEvent"></strong><br><span class="muted" id="ldUpdated"></span></div>
+        <button type="button" class="small" id="ldLogout">Change event</button>
+      </div>
+      <div class="grid2" style="margin-top:12px">
+        <label class="f">Job scope<select id="ldPhase"></select></label>
+        <label class="f">Day<select id="ldDay"></select></label>
+      </div>
+      <div class="row" style="margin-top:0"><button type="button" id="ldRefresh">Refresh</button><span class="muted" style="font-size:13px">Updates every minute. Tap Mark to record a scan by hand.</span></div>
+      <div id="ldMsg"></div>
+      <div id="ldBody" class="tablewrap" style="margin-top:10px"></div>
+    </div>
   </section>
 
   <!-- ================= ADMIN VIEW ================= -->
@@ -582,6 +632,7 @@
           <label class="f">Location<input id="edLocation" maxlength="200"></label>
           <label class="f">Short description<input id="edDesc" maxlength="1000"></label>
           <label class="f">Scanner PIN<input id="edPin" maxlength="20" placeholder="e.g. KLM2026" style="text-transform:uppercase"><span class="hint">Coordinators enter this on the scanner page. 4 to 20 letters or numbers. Leave blank to turn scanning off.</span></label>
+          <label class="f">Payment reference (bank file)<input id="edPayRef" maxlength="14" placeholder="Filled in from the name, e.g. KLWRF2026" style="text-transform:uppercase"><span class="hint">Used in the M2U Biz payout file. Letters and numbers only, 14 at most. Leave blank to use the initials and year of the event name.</span></label>
           <label class="f">Recruiters (one name per line)<textarea id="edRecruiters" style="min-height:90px" placeholder="e.g.&#10;Aini&#10;Ben"></textarea><span class="hint">Crew must choose one of these when they register for this event. Each recruiter gets a private link on the Events tab. Removing a name switches off their link.</span></label>
         </div>
 
@@ -620,7 +671,7 @@ Wages: RM70/day"></textarea>
           <select id="regEvent" style="flex:1;min-width:200px"></select>
           <button type="button" id="regRefresh">Refresh</button>
           <button type="button" id="regCsv">Download CSV</button>
-          <button type="button" class="primary" id="regPayout">Create payout Google Sheet</button>
+          <button type="button" class="primary" id="regPayout">Create payout sheet (M2U Biz)</button>
         </div>
         <div id="regLinks"></div>
         <div id="regBody" style="margin-top:14px"></div>
@@ -828,7 +879,10 @@ function phaseMeta(p) {
 
 function downloadCsv(name, rows) {
   const csv = rows.map(r => r.map(v => {
-    const s = String(v == null ? '' : v);
+    let s = String(v == null ? '' : v);
+    // IC, account and phone numbers are written as text (="...") so Excel keeps leading zeros and every digit
+    // instead of showing 1.01304E+15 or rounding long numbers.
+    if (/^\+?[0-9][0-9 ]*$/.test(s) && s.replace(/\D/g, '').length >= 6) s = '="' + s + '"';
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   }).join(',')).join('\n');
   const a = document.createElement('a');
@@ -1627,13 +1681,59 @@ function renderRecruiter() {
     return '<span class="tag ok">Confirmed</span>' + (r.source === 'Walk-in' ? '<span class="tag walkin">Walk in</span>' : '');
   };
   const cf = { Pending: 'Waiting for reply', Coming: 'Coming', Cannot: 'Cannot make it', 'No reply': 'No reply', Auto: 'Confirmed' };
-  $('#rvBody').innerHTML = '<table class="data"><thead><tr><th>No.</th><th>Name</th><th>Phone</th><th>WhatsApp username</th><th>Job scope</th><th>Days</th><th>Form</th><th>Status</th><th>Final check</th><th>Attendance</th><th>Fee</th><th>Joined WhatsApp</th><th>Remark / Replace by</th></tr></thead><tbody>' +
+  renderRvBackups();
+  $('#rvBody').innerHTML = '<table class="data"><thead><tr><th>No.</th><th>Name</th><th>Phone</th><th>WhatsApp username</th><th>Job scope</th><th>Days</th><th>Form</th><th>Status</th><th>Final check</th><th>Attendance</th><th>Fee</th><th>Joined WhatsApp</th><th>Remark / Replace by</th><th></th></tr></thead><tbody>' +
     d.rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name) + (r.replacementOf ? '<br><span class="muted">Replacing ' + esc(r.replacementOf) + '</span>' : '') + (r.replacedBy ? '<br><span class="muted">Replaced: ' + esc(r.replacedBy) + '</span>' : '') +
       '</td><td>' + esc(r.phone) + '</td><td>' + esc(r.whatsappUser) + '</td><td>' + esc(r.jobScope) + '</td><td>' + esc(r.days.join(', ')) + '</td><td>&#10003;</td><td>' + st(r) +
       '</td><td>' + esc(cf[r.confirmStatus] || '') + '</td><td>' + esc(r.attendance.join(', ')) + '</td><td>' + (r.feeState ? esc(r.feeState) + (r.fee ? ' RM' + r.fee : '') : '') +
       '</td><td><input type="checkbox" data-rvj="' + esc(r.regId) + '"' + (r.waJoined ? ' checked' : '') + ' style="width:18px;height:18px"></td>' +
-      '<td><input class="rv-remark" data-rvr="' + esc(r.regId) + '" value="' + esc(r.remark) + '" maxlength="300"></td></tr>').join('') + '</tbody></table>';
+      '<td><input class="rv-remark" data-rvr="' + esc(r.regId) + '" value="' + esc(r.remark) + '" maxlength="300"></td>' +
+      '<td>' + (r.status === 'Confirmed' || r.status === 'Backup' ? '<button type="button" class="small danger" data-rvx="' + esc(r.regId) + '">Remove</button>' : '') + '</td></tr>').join('') + '</tbody></table>';
 }
+function renderRvBackups() {
+  const b = RV.data.backups || [];
+  $('#rvBackups').innerHTML = !b.length ? '<p class="muted">No backups yet.</p>' :
+    '<table class="data"><thead><tr><th>Name</th><th>Phone</th><th>WhatsApp username</th><th>Gender</th><th>Job scope</th><th>Recruiter</th><th></th></tr></thead><tbody>' +
+    b.map(x => '<tr><td>' + esc(x.name) + '</td><td>' + esc(x.phone) + '</td><td>' + esc(x.whatsappUser) + '</td><td>' + esc(x.gender) + '</td><td>' + esc(x.jobScope) + '</td><td>' + esc(x.recruiter) + '</td><td>' +
+      (x.canPromote ? '<button type="button" class="small primary" data-rvp="' + esc(x.regId) + '" data-name="' + esc(x.name) + '">Promote</button>' : '<span class="muted">' + esc(x.why) + '</span>') + '</td></tr>').join('') + '</tbody></table>';
+}
+const RVX = { regId: '' };
+$('#rvBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-rvx]');
+  if (!b) return;
+  const r = RV.data.rows.find(x => x.regId === b.dataset.rvx);
+  RVX.regId = r.regId;
+  $('#rvmWho').textContent = r.name + ', ' + r.jobScope + (r.status === 'Backup' ? ' (backup)' : '');
+  $('#rvmReason').innerHTML = RV.data.removeReasons.map(x => '<option>' + esc(x) + '</option>').join('') + '<option value="__other">Other (type below)</option>';
+  $('#rvmOther').value = ''; $('#rvmOtherWrap').classList.add('hidden'); msg('rvmMsg', '');
+  $('#rvModal').classList.remove('hidden');
+});
+$('#rvmReason').addEventListener('change', () => $('#rvmOtherWrap').classList.toggle('hidden', $('#rvmReason').value !== '__other'));
+$('#rvmClose').addEventListener('click', () => $('#rvModal').classList.add('hidden'));
+$('#rvmGo').addEventListener('click', async e => {
+  const reason = $('#rvmReason').value === '__other' ? $('#rvmOther').value.trim() : $('#rvmReason').value;
+  if (!reason) { msg('rvmMsg', 'Please type the reason.'); return; }
+  await busy(e.currentTarget, async () => {
+    try {
+      const r = await api('recruiterCancel', { token: params.get('recruiter'), regId: RVX.regId, reason: reason });
+      $('#rvModal').classList.add('hidden');
+      await loadRecruiter();
+      msg('rvMsg', 'Removed.' + (r.emailed ? ' The crew has been emailed.' : ' The email could not be sent, please let them know.'), 'ok');
+    } catch (err) { msg('rvmMsg', err.message); }
+  });
+});
+$('#rvBackups').addEventListener('click', async e => {
+  const b = e.target.closest('[data-rvp]');
+  if (!b) return;
+  if (!confirm('Promote ' + b.dataset.name + '? They take the free slot and get the Job confirmed email with their QR code.')) return;
+  await busy(b, async () => {
+    try {
+      const r = await api('recruiterPromote', { token: params.get('recruiter'), regId: b.dataset.rvp });
+      await loadRecruiter();
+      msg('rvMsg', b.dataset.name + ' promoted.' + (r.emailed ? ' The Job confirmed email has been sent.' : ' The email could not be sent, please contact them.'), 'ok');
+    } catch (err) { msg('rvMsg', err.message); await loadRecruiter(); }
+  });
+});
 $('#rvBody').addEventListener('change', async e => {
   const j = e.target.dataset.rvj, rr = e.target.dataset.rvr;
   if (!j && !rr) return;
@@ -1648,6 +1748,81 @@ $('#rvBody').addEventListener('change', async e => {
   } catch (err) { msg('rvMsg', err.message); }
 });
 $('#rvRefresh').addEventListener('click', e => busy(e.currentTarget, loadRecruiter));
+
+/* ================= LEAD VIEW (link with ?lead=1) ================= */
+const LD = { pin: '', name: '', info: null, timer: null };
+const LD_TYPES = [['CheckIn', 'checkIn', -1], ['RollCall', 'rollCalls', 0], ['RollCall2', 'rollCalls', 1], ['RollCall3', 'rollCalls', 2], ['CheckOut', 'checkOut', -1]];
+$('#formLeadLogin').addEventListener('submit', async e => {
+  e.preventDefault();
+  msg('ldLoginMsg', '');
+  const pin = $('#ldPin').value.trim(), name = $('#ldName').value.trim();
+  if (!pin || !name) { msg('ldLoginMsg', 'Please enter the scanner PIN and your name.'); return; }
+  await busy($('#formLeadLogin button'), async () => {
+    try {
+      LD.info = await api('leadLogin', { pin: pin });
+      LD.pin = pin; LD.name = name;
+      store('scanPin', pin); store('scanName', name);
+      $('#ldEvent').textContent = LD.info.eventName;
+      // Job scopes working today come first.
+      const ph = LD.info.phases.slice().sort((a, b) => (b.days.indexOf(LD.info.today) >= 0) - (a.days.indexOf(LD.info.today) >= 0));
+      $('#ldPhase').innerHTML = ph.map(p => '<option value="' + esc(p.phaseId) + '">' + esc(p.jobScope) + '</option>').join('');
+      fillLeadDays();
+      $('#leadLogin').classList.add('hidden');
+      $('#leadPanel').classList.remove('hidden');
+      await loadLead();
+      clearInterval(LD.timer);
+      LD.timer = setInterval(() => { if (!document.hidden) loadLead(true); }, 60000);
+    } catch (err) { msg('ldLoginMsg', err.message); }
+  });
+});
+function fillLeadDays() {
+  const p = LD.info.phases.find(x => x.phaseId === $('#ldPhase').value);
+  const days = p ? p.days : [];
+  $('#ldDay').innerHTML = days.map(d => '<option value="' + d + '">' + esc(isoLabel(d)) + (d === LD.info.today ? ' (today)' : '') + '</option>').join('');
+  if (days.indexOf(LD.info.today) >= 0) $('#ldDay').value = LD.info.today;
+}
+async function loadLead(quiet) {
+  if (!quiet) msg('ldMsg', '');
+  try {
+    const d = await api('leadView', { pin: LD.pin, phaseId: $('#ldPhase').value, day: $('#ldDay').value });
+    renderLead(d);
+    $('#ldUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-MY', { hour: 'numeric', minute: '2-digit' });
+  } catch (err) { msg('ldMsg', err.message); }
+}
+function renderLead(d) {
+  const canMark = $('#ldDay').value <= LD.info.today;
+  const counts = {};
+  d.rows.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
+  const cell = (r, t) => {
+    const v = t[2] >= 0 ? r[t[1]][t[2]] : r[t[1]];
+    if (v) return esc(v);
+    return canMark ? '<button type="button" class="markbtn" data-mark="' + t[0] + '" data-crew="' + esc(r.crewId) + '" data-name="' + esc(r.name) + '">Mark</button>' : '';
+  };
+  $('#ldBody').innerHTML = '<p class="muted" style="margin:0 0 8px">' + esc(d.jobScope) + ' &middot; ' + esc(d.dayLabel) + ' &middot; ' + (Object.keys(counts).map(k => counts[k] + ' ' + k).join(', ') || 'No crew') + '</p>' +
+    (d.rows.length ? '<table class="data"><thead><tr><th>No.</th><th>Name</th><th>IC / Passport</th><th>Phone</th><th>Gender</th><th>T-shirt</th><th>Health</th><th>Dietary</th><th>Check in</th><th>Roll call 1</th><th>Roll call 2</th><th>Roll call 3</th><th>Check out</th><th>Status</th></tr></thead><tbody>' +
+      d.rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name) + (r.replacement ? ' <span class="muted">(replacement)</span>' : '') + (r.walkin ? '<span class="tag walkin">Walk in</span>' : '') +
+        '</td><td>' + esc(r.ic) + '</td><td>' + esc(r.phone || r.whatsappUser) + '</td><td>' + esc(r.gender) + '</td><td>' + esc(r.shirtSize) + '</td><td>' + esc(r.health) + '</td><td>' + esc(r.dietary) + '</td>' +
+        LD_TYPES.map(t => '<td>' + cell(r, t) + '</td>').join('') +
+        '<td><span class="st ' + esc(r.status) + '">' + esc(r.status) + '</span>' + (r.missing.length ? '<br><span class="muted">Missing ' + esc(r.missing.join(', ')) + '</span>' : '') + '</td></tr>').join('') + '</tbody></table>'
+      : '<p class="muted">No crew on duty for this job scope on this day.</p>');
+}
+$('#ldBody').addEventListener('click', async e => {
+  const b = e.target.closest('[data-mark]');
+  if (!b) return;
+  const label = { CheckIn: 'Check in', RollCall: 'Roll call 1', RollCall2: 'Roll call 2', RollCall3: 'Roll call 3', CheckOut: 'Check out' }[b.dataset.mark];
+  if (!confirm('Mark ' + label + ' for ' + b.dataset.name + ' by hand?')) return;
+  await busy(b, async () => {
+    try { const r = await api('leadMark', { pin: LD.pin, crewId: b.dataset.crew, day: $('#ldDay').value, mode: b.dataset.mark, lead: LD.name }); await loadLead(true); msg('ldMsg', r.message, 'ok'); }
+    catch (err) { msg('ldMsg', err.message); }
+  }, '...');
+});
+$('#ldPhase').addEventListener('change', () => { fillLeadDays(); loadLead(); });
+$('#ldDay').addEventListener('change', () => loadLead());
+$('#ldRefresh').addEventListener('click', e => busy(e.currentTarget, () => loadLead()));
+$('#ldLogout').addEventListener('click', () => {
+  clearInterval(LD.timer); store('scanPin', '');
+  $('#leadPanel').classList.add('hidden'); $('#leadLogin').classList.remove('hidden');
+});
 
 /* ================= ADMIN ================= */
 const A = { key: '', events: [], editor: null, regData: null, crew: [], acks: [] };
@@ -1717,6 +1892,7 @@ function renderAdminEvents() {
         : '<button type="button" class="small" data-act="publish" data-id="' + esc(ev.eventId) + '">Publish</button>') +
       '<button type="button" class="small" data-act="link" data-id="' + esc(ev.eventId) + '">Copy crew link</button>' +
       '<button type="button" class="small" data-act="scanlink" data-id="' + esc(ev.eventId) + '">Copy scanner link</button>' +
+      '<button type="button" class="small" data-act="leadlink" data-id="' + esc(ev.eventId) + '">Copy lead link</button>' +
       '<button type="button" class="small" data-act="backuplink" data-id="' + esc(ev.eventId) + '">Copy backup link</button>' +
       '<button type="button" class="small" data-act="walkinlink" data-id="' + esc(ev.eventId) + '">Copy walk in link</button>' +
       '<button type="button" class="small" data-act="regs" data-id="' + esc(ev.eventId) + '">Registrations</button>' +
@@ -1740,6 +1916,12 @@ $('#evList').addEventListener('click', async e => {
   if (act === 'scanlink') {
     const link = location.origin + location.pathname + '?scan=1';
     try { await navigator.clipboard.writeText(link); msg('evMsg', 'Scanner link copied: ' + link + (ev.scannerPin ? '  (PIN: ' + ev.scannerPin + ')' : '  (set a scanner PIN first)'), 'ok'); }
+    catch (_) { prompt('Copy this link:', link); }
+    return;
+  }
+  if (act === 'leadlink') {
+    const link = location.origin + location.pathname + '?lead=1';
+    try { await navigator.clipboard.writeText(link); msg('evMsg', 'Lead link copied: ' + link + (ev.scannerPin ? '  (same PIN as the scanner: ' + ev.scannerPin + ')' : '  (set a scanner PIN first)'), 'ok'); }
     catch (_) { prompt('Copy this link:', link); }
     return;
   }
@@ -1771,13 +1953,13 @@ function blankPhase() {
   return { phaseId: newPhaseId(), jobScope: '', pax: '', maleSlots: '', femaleSlots: '', startDate: '', endDate: '', dateText: '', timeText: '', callTime: '', venue: '', wages: '', dailyWage: '', whatsapp: '', conflicts: [], filled: 0 };
 }
 function newEditor() {
-  A.editor = { eventId: '', name: '', location: '', description: '', scannerPin: '', recruiters: '', status: 'Paused', phases: [blankPhase()] };
+  A.editor = { eventId: '', name: '', location: '', description: '', scannerPin: '', payRef: '', recruiters: '', status: 'Paused', phases: [blankPhase()] };
   fillEditor();
 }
 function openEditor(ev) {
   A.editor = {
     eventId: ev.eventId, name: ev.name, location: ev.location, description: ev.description, scannerPin: ev.scannerPin || '', status: ev.status,
-    recruiters: (ev.recruiters || []).map(r => r.name).join('\n'),
+    recruiters: (ev.recruiters || []).map(r => r.name).join('\n'), payRef: ev.payRef || '',
     phases: ev.phases.map(p => Object.assign({}, p, { conflicts: p.conflicts.slice() }))
   };
   fillEditor();
@@ -1791,6 +1973,7 @@ function fillEditor() {
   $('#edDesc').value = ed.description;
   $('#edPin').value = ed.scannerPin;
   $('#edRecruiters').value = ed.recruiters || '';
+  $('#edPayRef').value = ed.payRef || '';
   $('#edPublish').textContent = ed.eventId && ed.status === 'Published' ? 'Save and keep published' : 'Publish';
   msg('edMsg', '');
   renderPhaseEditors();
@@ -1854,8 +2037,8 @@ $('#edPhases').addEventListener('click', e => {
 
 $('#edAddPhase').addEventListener('click', () => { A.editor.phases.push(blankPhase()); renderPhaseEditors(); renderGrid(); });
 
-['edName', 'edLocation', 'edDesc', 'edPin', 'edRecruiters'].forEach(id => $('#' + id).addEventListener('input', e => {
-  const map = { edName: 'name', edLocation: 'location', edDesc: 'description', edPin: 'scannerPin', edRecruiters: 'recruiters' };
+['edName', 'edLocation', 'edDesc', 'edPin', 'edRecruiters', 'edPayRef'].forEach(id => $('#' + id).addEventListener('input', e => {
+  const map = { edName: 'name', edLocation: 'location', edDesc: 'description', edPin: 'scannerPin', edRecruiters: 'recruiters', edPayRef: 'payRef' };
   A.editor[map[id]] = e.target.value;
 }));
 
@@ -1976,7 +2159,7 @@ async function saveEvent(status, btn) {
   await busy(btn, async () => {
     try {
       await adminApi('adminSaveEvent', {
-        event: { eventId: ed.eventId, name: ed.name, location: ed.location, description: ed.description, scannerPin: (ed.scannerPin || '').trim(), status },
+        event: { eventId: ed.eventId, name: ed.name, location: ed.location, description: ed.description, scannerPin: (ed.scannerPin || '').trim(), payRef: (ed.payRef || '').trim(), status },
         phases: ed.phases.map(p => ({
           phaseId: p.phaseId, jobScope: p.jobScope, pax: Number(p.pax), dateText: p.dateText, timeText: p.timeText,
           callTime: p.callTime, venue: p.venue, wages: p.wages, conflicts: p.conflicts,
@@ -2018,15 +2201,16 @@ async function loadRegs() {
 }
 
 const shortDiet = s => String(s || '').replace(/^Other: /, '').replace(/\s*\(.*\)$/, '') || 'Not stated';
-function countBy(rows, f) {
+function countBy(rows, f, cls) {
   const c = {};
   rows.forEach(r => { const k = f(r) || 'Not stated'; c[k] = (c[k] || 0) + 1; });
-  return Object.keys(c).sort().map(k => esc(k) + ': ' + c[k] + ' pax').join('<br>');
+  return Object.keys(c).sort().map(k => '<span class="chip ' + cls + '">' + esc(k) + ': ' + c[k] + ' pax</span>').join('');
 }
 function summaryHtml(d) {
   const conf = d.registrations.filter(r => r.status === 'Confirmed');
   const box = (title, rows) => '<div class="sumbox"><strong>' + esc(title) + ' (' + rows.length + ' pax)</strong>' +
-    (rows.length ? '<span class="muted">T-shirt</span><br>' + countBy(rows, r => r.shirtSize.replace(/^Other: /, '')) + '<br><span class="muted">Dietary</span><br>' + countBy(rows, r => shortDiet(r.dietary)) : '<span class="muted">No confirmed crew</span>') + '</div>';
+    (rows.length ? '<span class="sumhead shirt">T-shirt</span>' + countBy(rows, r => r.shirtSize.replace(/^Other: /, ''), 'shirt') +
+      '<span class="sumhead diet">Dietary</span>' + countBy(rows, r => shortDiet(r.dietary), 'diet') : '<span class="muted">No confirmed crew</span>') + '</div>';
   // Event total counts each person once.
   const seen = new Set(), people = conf.filter(r => !seen.has(r.crewId) && seen.add(r.crewId));
   return '<h3 style="margin-top:4px">Summary (confirmed crew)</h3><div class="sumgrid">' + box('Whole event, each person once', people) +
@@ -2154,7 +2338,9 @@ $('#regPayout').addEventListener('click', async e => {
     try {
       const r = await adminApi('adminGeneratePayout', { eventId: id });
       $('#regLinks').innerHTML = '<div class="msg ok">Payout sheet saved in the "Payouts" folder in Google Drive: <a href="' + esc(r.sheetUrl) + '" target="_blank" rel="noopener">Open Google Sheet</a>. ' +
-        r.crewCount + ' crew, total payable RM' + r.total + ', recruiter fees RM' + r.feeTotal + '. Click again any time to refresh it.</div>';
+        r.inFile + ' crew in the bank file' + (r.files > 1 ? ' (split into ' + r.files + ' upload tabs)' : '') + ', total RM' + r.total.toFixed(2) + '. Recruiter fees RM' + r.feeTotal + '.' +
+        (r.problems ? ' <strong>' + r.problems + ' crew left out because of bank detail problems: see the Details tab.</strong>' : '') +
+        ' For M2U Biz, open the "M2U Upload" tab, fill in the Crediting Date, then File &gt; Download &gt; CSV. Creating the sheet again refreshes it.</div>';
     } catch (err) { msg('regMsg', err.message); }
   }, 'Creating...');
 });
@@ -2279,8 +2465,8 @@ function renderAttendance(d) {
   d.rows.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
   $('#atBody').innerHTML = '<h3>' + esc(d.jobScope) + ' &middot; ' + esc(d.dayLabel) + '</h3><p class="muted">' +
     Object.keys(counts).map(k => counts[k] + ' ' + k).join(', ') + (d.rollCallHeld ? ' &middot; Roll calls held: ' + (d.rollCallsHeld || []).map(t => ({ RollCall: '1', RollCall2: '2', RollCall3: '3' })[t]).join(', ') : ' &middot; No roll call held yet') + '</p>' +
-    (d.rows.length ? '<table class="data"><thead><tr><th>No.</th><th>Name</th><th>IC / Passport</th><th>Phone</th><th>Gender</th><th>T-shirt</th><th>Check in</th><th>Roll call 1</th><th>Roll call 2</th><th>Roll call 3</th><th>Check out</th><th>Status</th></tr></thead><tbody>' +
-      d.rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name) + (r.replacement ? ' <span class="muted">(replacement)</span>' : '') + (r.walkin ? '<span class="tag walkin">Walk in</span>' : '') + '</td><td>' + esc(r.ic || '') + '</td><td>' + esc(r.phone || r.whatsappUser || '') + '</td><td>' + esc(r.gender || '') + '</td><td>' + esc(r.shirtSize || '') + '</td><td>' + esc(r.checkIn) +
+    (d.rows.length ? '<table class="data"><thead><tr><th>No.</th><th>Name</th><th>IC / Passport</th><th>Phone</th><th>Gender</th><th>T-shirt</th><th>Health</th><th>Dietary</th><th>Check in</th><th>Roll call 1</th><th>Roll call 2</th><th>Roll call 3</th><th>Check out</th><th>Status</th></tr></thead><tbody>' +
+      d.rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name) + (r.replacement ? ' <span class="muted">(replacement)</span>' : '') + (r.walkin ? '<span class="tag walkin">Walk in</span>' : '') + '</td><td>' + esc(r.ic || '') + '</td><td>' + esc(r.phone || r.whatsappUser || '') + '</td><td>' + esc(r.gender || '') + '</td><td>' + esc(r.shirtSize || '') + '</td><td>' + esc(r.health || '') + '</td><td>' + esc(r.dietary || '') + '</td><td>' + esc(r.checkIn) +
         '</td>' + [0, 1, 2].map(k => '<td>' + esc(r.rollCalls[k] || '') + '</td>').join('') + '<td>' + esc(r.checkOut) + '</td><td><span class="st ' + esc(r.status) + '">' + esc(r.status) + '</span>' +
         (r.missing.length ? '<br><span class="muted">Missing ' + esc(r.missing.join(', ')) + '</span>' : '') + '</td></tr>').join('') + '</tbody></table>'
       : '<p class="muted">No crew registered for this day.</p>');
@@ -2452,6 +2638,15 @@ if (params.get('scan')) {
   $('#footLinks').innerHTML = '';
   $('#scPin').value = store('scanPin');
   $('#scName').value = store('scanName');
+} else if (params.get('lead')) {
+  $('#crewView').classList.add('hidden');
+  $('#leadView').classList.remove('hidden');
+  $('#main').classList.add('wide');
+  $('#pageTitle').textContent = 'Lead View';
+  $('#pageSub').textContent = 'Crew check in, roll call and check out status';
+  $('#footLinks').innerHTML = '';
+  $('#ldPin').value = store('scanPin');
+  $('#ldName').value = store('scanName');
 } else if (params.get('recruiter')) {
   $('#crewView').classList.add('hidden');
   $('#recruiterView').classList.remove('hidden');
