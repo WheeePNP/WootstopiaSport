@@ -671,9 +671,15 @@ Wages: RM70/day"></textarea>
           <select id="regEvent" style="flex:1;min-width:200px"></select>
           <button type="button" id="regRefresh">Refresh</button>
           <button type="button" id="regCsv">Download CSV</button>
-          <button type="button" class="primary" id="regPayout">Create payout sheet (M2U Biz)</button>
         </div>
-        <div id="regLinks"></div>
+        <details class="upd" id="payBox">
+          <summary><strong>Payouts (M2U Biz)</strong>: pay by job scope</summary>
+          <p class="sub" style="margin-top:8px">Tick the job scopes to pay, then create the sheet. Each batch gets its own Google Sheet in the "Payouts" folder. After finance has transferred, click <strong>Mark as paid</strong> so those job scopes cannot be paid again. FFK cancels the wages of that job scope only. Recruiter fees are on a separate tab, not in the M2U Biz file.</p>
+          <div id="payPhases"></div>
+          <div class="row"><button type="button" class="primary" id="regPayout">Create payout sheet for ticked job scopes</button></div>
+          <div id="regLinks"></div>
+          <div id="payBatches" class="tablewrap" style="margin-top:12px"></div>
+        </details>
         <div id="regBody" style="margin-top:14px"></div>
         <div id="regMsg"></div>
       </div>
@@ -2258,7 +2264,7 @@ function renderRegs() {
   }).join('');
 }
 
-$('#regEvent').addEventListener('change', loadRegs);
+$('#regEvent').addEventListener('change', () => { loadRegs(); $('#regLinks').innerHTML = ''; if ($('#payBox').open) loadPayouts(); });
 $('#regRefresh').addEventListener('click', loadRegs);
 
 function blButton(crewId, name, on) {
@@ -2330,17 +2336,47 @@ $('#cxGo').addEventListener('click', async e => {
   });
 });
 
+async function loadPayouts() {
+  const id = $('#regEvent').value;
+  if (!id) { $('#payPhases').innerHTML = ''; $('#payBatches').innerHTML = ''; return; }
+  try {
+    const d = await adminApi('adminListPayouts', { eventId: id });
+    $('#payPhases').innerHTML = d.phases.map(p => '<label class="ack-item" style="margin:6px 0"><input type="checkbox" data-payph="' + esc(p.phaseId) + '"' +
+      (p.paidAt ? ' disabled' : p.finished ? ' checked' : '') + '><span><strong>' + esc(p.jobScope) + '</strong> <span class="muted">' +
+      (p.paidAt ? '' : (p.finished ? 'finished ' : 'last day ') + esc(p.lastDayLabel)) + '</span>' +
+      (p.paidAt ? ' <span class="tag ok">Paid ' + esc(p.paidAt) + '</span>' : '') + '</span></label>').join('');
+    $('#payBatches').innerHTML = d.batches.length ? '<table class="data"><thead><tr><th>Created</th><th>Job scopes</th><th>Crew in bank file</th><th>Total (RM)</th><th>Recruiter fees (RM)</th><th>Sheet</th><th>Status</th><th></th></tr></thead><tbody>' +
+      d.batches.map(b => '<tr><td>' + esc(b.createdAt) + '</td><td>' + esc(b.jobScopes) + '</td><td>' + b.crewCount + '</td><td>' + b.total.toFixed(2) + '</td><td>' + b.feeTotal + '</td><td><a href="' + esc(b.sheetUrl) + '" target="_blank" rel="noopener">Open</a></td><td>' +
+        (b.status === 'Paid' ? '<span class="tag ok">Paid ' + esc(b.paidAt) + '</span>' : '<span class="tag">Not paid yet</span>') + '</td><td>' +
+        (b.status === 'Paid' ? '<button type="button" class="small" data-unpaid="' + esc(b.batchId) + '">Undo paid</button>' : '<button type="button" class="small primary" data-paid="' + esc(b.batchId) + '">Mark as paid</button>') + '</td></tr>').join('') + '</tbody></table>'
+      : '<p class="muted">No payout sheets yet.</p>';
+  } catch (err) { msg('regMsg', err.message); }
+}
+$('#payBox').addEventListener('toggle', () => { if ($('#payBox').open) loadPayouts(); });
+$('#payBatches').addEventListener('click', async e => {
+  const b = e.target.closest('[data-paid], [data-unpaid]');
+  if (!b) return;
+  const undo = !!b.dataset.unpaid;
+  if (!confirm(undo ? 'Undo "paid" for this batch? Its job scopes can then be paid again.' : 'Mark this batch as paid? Only do this after finance has transferred the money. Its job scopes cannot be paid again.')) return;
+  await busy(b, async () => {
+    try { await adminApi('adminMarkPaid', { batchId: b.dataset.paid || b.dataset.unpaid, undo: undo }); await loadPayouts(); msg('regMsg', undo ? 'Batch set back to not paid.' : 'Batch marked as paid.', 'ok'); }
+    catch (err) { msg('regMsg', err.message); }
+  });
+});
 $('#regPayout').addEventListener('click', async e => {
   msg('regMsg', ''); $('#regLinks').innerHTML = '';
   const id = $('#regEvent').value;
   if (!id) { msg('regMsg', 'Choose an event first.'); return; }
+  const phaseIds = $$('[data-payph]:checked').map(c => c.dataset.payph);
+  if (!phaseIds.length) { msg('regMsg', 'Please tick at least one job scope to pay.'); return; }
   await busy(e.currentTarget, async () => {
     try {
-      const r = await adminApi('adminGeneratePayout', { eventId: id });
+      const r = await adminApi('adminGeneratePayout', { eventId: id, phaseIds: phaseIds });
+      await loadPayouts();
       $('#regLinks').innerHTML = '<div class="msg ok">Payout sheet saved in the "Payouts" folder in Google Drive: <a href="' + esc(r.sheetUrl) + '" target="_blank" rel="noopener">Open Google Sheet</a>. ' +
         r.inFile + ' crew in the bank file' + (r.files > 1 ? ' (split into ' + r.files + ' upload tabs)' : '') + ', total RM' + r.total.toFixed(2) + '. Recruiter fees RM' + r.feeTotal + '.' +
         (r.problems ? ' <strong>' + r.problems + ' crew left out because of bank detail problems: see the Details tab.</strong>' : '') +
-        ' For M2U Biz, open the "M2U Upload" tab, fill in the Crediting Date, then File &gt; Download &gt; CSV. Creating the sheet again refreshes it.</div>';
+        ' For M2U Biz, open the "M2U Upload" tab, fill in the Crediting Date, then File &gt; Download &gt; CSV. After the transfer, click Mark as paid below.</div>';
     } catch (err) { msg('regMsg', err.message); }
   }, 'Creating...');
 });
