@@ -2399,14 +2399,15 @@ async function loadCrew() {
 
 function renderCrew() {
   const q = $('#crewSearch').value.trim().toLowerCase();
-  const list = A.crew.filter(c => !q || [c.crewId, c.fullName, c.preferredName, c.phone, c.email, c.whatsappUser, c.idNumber].join(' ').toLowerCase().indexOf(q) >= 0);
+  const list = A.crew.filter(c => !q || [c.crewId, c.fullName, c.preferredName, c.phone, c.email, c.whatsappUser, c.idNumber, c.bankAccount, c.bankHolder].join(' ').toLowerCase().indexOf(q) >= 0);
   if (!list.length) { $('#crewBody').innerHTML = '<p class="muted">No crew found.</p>'; return; }
-  $('#crewBody').innerHTML = '<table class="data"><thead><tr><th>Crew ID</th><th>Photo</th><th>Name</th><th>IC / Passport</th><th>Nationality</th><th>Phone</th><th>WhatsApp username</th><th>Email</th><th>Email status</th><th>T-Shirt</th><th>Languages</th><th>Health</th><th>Dietary</th><th>Total jobs</th><th>IC copy</th><th>Signed agreement</th></tr></thead><tbody>' +
+  $('#crewBody').innerHTML = '<table class="data"><thead><tr><th>Crew ID</th><th>Photo</th><th>Name</th><th>IC / Passport</th><th>Nationality</th><th>Phone</th><th>WhatsApp username</th><th>Email</th><th>Email status</th><th>T-Shirt</th><th>Languages</th><th>Health</th><th>Dietary</th><th>Bank</th><th>Account No.</th><th>Account holder</th><th>Total jobs</th><th>IC copy</th><th>Signed agreement</th></tr></thead><tbody>' +
     list.map(c => '<tr' + (c.walkin ? ' class="walkin"' : '') + '><td>' + esc(c.crewId) + '</td><td>' + viewLink(c.photoLink) + '</td><td' + (c.walkin ? ' class="redcell"' : '') + '>' + esc(c.fullName) + (c.walkin ? '<br><strong>Walk in: details not complete</strong>' : '') + (c.preferredName ? '<br><span class="muted">' + esc(c.preferredName) + '</span>' : '') +
       (c.blacklisted ? '<br><span class="tag black">Blacklisted ' + esc(c.blacklistedAt) + '</span><br><span class="muted">' + esc(c.blacklistReason) + '</span>' : '') + blButton(c.crewId, c.fullName, c.blacklisted) +
       '</td><td>' + esc(c.idNumber) + '</td><td>' + esc(c.nationality) + '</td><td>' + esc(c.phone) + '</td><td>' + esc(c.whatsappUser) + '</td><td' + (c.emailStatus && c.emailStatus !== 'Sent' ? ' class="redcell"' : '') + '>' + esc(c.email) +
       '</td><td' + (c.emailStatus && c.emailStatus !== 'Sent' ? ' class="redcell"' : '') + '>' + esc(c.emailStatus || '') + '<br><button type="button" class="small" data-welcome="' + esc(c.crewId) + '">Resend welcome email</button></td><td>' + esc(c.shirtSize) +
-      '</td><td>' + esc(c.languages) + '</td><td>' + esc(c.healthCondition) + '</td><td>' + esc(c.dietary) + '</td><td>' + c.jobsTotal +
+      '</td><td>' + esc(c.languages) + '</td><td>' + esc(c.healthCondition) + '</td><td>' + esc(c.dietary) +
+      '</td><td>' + esc(c.bankName) + '</td><td style="white-space:nowrap">' + esc(c.bankAccount) + '</td><td>' + esc(c.bankHolder) + '</td><td>' + c.jobsTotal +
       '</td><td>' + (c.icCopyLinks.length ? c.icCopyLinks.map((u, i) => '<a href="' + esc(u) + '" target="_blank" rel="noopener">File ' + (i + 1) + '</a>').join(' ') : '<span class="muted">None</span>') + '</td><td>' + viewLink(c.signedAgreementLink) + ' <span class="muted">v' + c.signedVersion + '</span></td></tr>').join('') +
     '</tbody></table>';
 }
