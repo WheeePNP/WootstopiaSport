@@ -235,6 +235,7 @@
         <button type="button" id="btnNew"><strong>First time with us</strong>Fill in your details and sign the crew agreement.</button>
         <button type="button" id="btnReturning"><strong>I have registered before</strong>Use your IC or passport number to skip the details and go straight to choosing your job scopes.</button>
       </div>
+      <div class="row" style="justify-content:center"><button type="button" id="btnMyQr" class="small">Already registered? Get my QR code and job details</button></div>
     </div>
 
     <div class="card hidden" id="stepReturning">
@@ -506,6 +507,20 @@
       <div class="row"><button type="button" class="primary" id="btnWalkinNext">Next: sign the agreement</button></div>
     </div>
 
+    <div class="card hidden" id="stepMyQr">
+      <h2>My QR code</h2>
+      <p class="sub">Enter the IC or passport number you registered with and the last 4 digits of your phone number.</p>
+      <form id="formMyQr" novalidate>
+        <div class="grid2">
+          <div class="field"><label for="qIdNumber">IC / Passport Number <span class="req">*</span></label><input id="qIdNumber" maxlength="20" autocomplete="off"><span class="hint">Numbers only, without dashes (-).</span></div>
+          <div class="field"><label for="qPhone4">Last 4 Digits of Your Phone Number <span class="req">*</span></label><input id="qPhone4" maxlength="4" inputmode="numeric" autocomplete="off" placeholder="e.g. 6789"></div>
+        </div>
+        <div id="qMsg"></div>
+        <div class="row"><button type="button" data-back>Back</button><button type="submit" class="primary">Show my QR code</button></div>
+      </form>
+      <div id="qBody"></div>
+    </div>
+
     <div class="card hidden" id="stepConfirm">
       <h2>Confirm your attendance</h2>
       <div id="cfBody"><p class="muted">Loading&hellip;</p></div>
@@ -763,6 +778,14 @@ Wages: RM70/day"></textarea>
       </details>
     </div>
   </section>
+    <div class="modal hidden" id="qrModal" role="dialog" aria-modal="true" aria-labelledby="qrmTitle">
+      <div class="box" style="text-align:center">
+        <h2 id="qrmTitle">QR code</h2>
+        <div id="qrmBody"></div>
+        <div class="row" style="justify-content:center"><button type="button" id="qrmClose">Close</button><a class="wa" id="qrmDl" style="background:var(--navy);margin:0" download>Download image</a></div>
+      </div>
+    </div>
+
 </main>
 
 <footer>
@@ -1097,7 +1120,7 @@ const C = {
   mode: null, crew: null, idNumber: '', phoneLast4: '', details: null,
   events: [], event: null, selected: new Set(), held: new Set(), agreement: null, history: []
 };
-const STEPS = ['stepStart', 'stepReturning', 'stepDetails', 'stepEvent', 'stepWalkin', 'stepAgreement', 'stepDone', 'stepConfirm'];
+const STEPS = ['stepStart', 'stepReturning', 'stepDetails', 'stepEvent', 'stepWalkin', 'stepAgreement', 'stepDone', 'stepConfirm', 'stepMyQr'];
 let pad = null;
 const todayStr = new Date().toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -1563,6 +1586,34 @@ $('#btnAgain').addEventListener('click', async e => {
       await loadEvents();
       goStep('stepEvent', true);
     } catch (err) { alert(err.message); }
+  });
+});
+
+/* ================= MY QR CODE (no email needed) ================= */
+// A QR image (data URL) for a crew token, drawn in the browser.
+async function qrImage(token, scale) {
+  await loadScript(QRGEN_URL);
+  const q = qrcode(0, 'M'); q.addData('WC1:' + token); q.make();
+  // Draw on a canvas so the image downloads as a sharp PNG.
+  const n = q.getModuleCount(), cell = scale || 10, pad = cell * 4, size = n * cell + pad * 2;
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, size, size); g.fillStyle = '#000';
+  for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) g.fillRect(pad + k * cell, pad + r * cell, cell, cell);
+  return c.toDataURL('image/png');
+}
+$('#btnMyQr').addEventListener('click', () => { msg('qMsg', ''); $('#qBody').innerHTML = ''; goStep('stepMyQr'); });
+$('#formMyQr').addEventListener('submit', async e => {
+  e.preventDefault();
+  msg('qMsg', ''); $('#qBody').innerHTML = '';
+  await busy($('#formMyQr button[type=submit]'), async () => {
+    try {
+      const r = await api('myQr', { idNumber: $('#qIdNumber').value.trim(), phoneLast4: $('#qPhone4').value.trim() });
+      const img = await qrImage(r.qrToken, 8);
+      $('#qBody').innerHTML = '<div class="qrbox"><strong>' + esc(r.fullName) + '</strong><br><img alt="Your QR code" src="' + img + '"><div class="muted">Code: <strong>' + esc(r.qrToken) + '</strong></div>' +
+        '<p class="muted" style="margin:8px 0 0">Show this at check in, every roll call and check out. Please take a screenshot now.</p></div>' +
+        (r.jobs.length ? '<h3>Your upcoming jobs</h3>' + jobList({ registered: r.jobs.map(j => Object.assign({}, j, { jobScope: j.eventName + ': ' + j.jobScope })) })
+          : '<p class="muted">You have no upcoming confirmed jobs.</p>');
+    } catch (err) { msg('qMsg', err.message); }
   });
 });
 
@@ -2161,6 +2212,9 @@ async function saveEvent(status, btn) {
       const sv = String(p[k] == null ? '' : p[k]).trim();
       if (sv !== '' && !(Number.isInteger(Number(sv)) && Number(sv) >= 0 && Number(sv) <= Number(p.pax))) { msg('edMsg', 'The ' + lab + ' slots for ' + p.jobScope + ' must be a whole number from 0 to ' + p.pax + ', or blank for no limit.'); return; }
     }
+    if (String(p.maleSlots == null ? '' : p.maleSlots).trim() === '0' && String(p.femaleSlots == null ? '' : p.femaleSlots).trim() === '0') {
+      msg('edMsg', p.jobScope + ' has 0 male and 0 female slots, so nobody can sign up. Leave a box blank for no limit, or set 0 only for the gender that cannot join.'); return;
+    }
   }
   await busy(btn, async () => {
     try {
@@ -2233,7 +2287,7 @@ function regActions(r) {
   if (r.status === 'Backup') btns += '<button type="button" class="small" data-promote="' + esc(r.regId) + '">Promote</button> ';
   if (r.status === 'Confirmed' || r.status === 'Backup') btns += '<button type="button" class="small danger" data-cancel="' + esc(r.regId) + '">Cancel</button>';
   else btns += '<span class="muted">' + esc(r.status) + '</span>';
-  btns += blButton(r.crewId, r.fullName, r.blacklisted);
+  btns += '<br>' + qrButton(r.qrToken, r.fullName) + blButton(r.crewId, r.fullName, r.blacklisted).replace(/^<br>/, '');
   return mail + btns + (r.cancelReason ? '<br><span class="muted">Reason: ' + esc(r.cancelReason) + '</span>' : '') +
     (r.replacedBy ? '<br><span class="muted">Replaced: ' + esc(r.replacedBy) + '</span>' : '') +
     (r.replacementOf ? '<br><span class="muted">Replacing ' + esc(r.replacementOf) + '</span>' : '');
@@ -2266,6 +2320,24 @@ function renderRegs() {
 
 $('#regEvent').addEventListener('change', () => { loadRegs(); $('#regLinks').innerHTML = ''; if ($('#payBox').open) loadPayouts(); });
 $('#regRefresh').addEventListener('click', loadRegs);
+
+function qrButton(token, name) {
+  return token ? '<button type="button" class="small" style="margin-top:4px" data-qr="' + esc(token) + '" data-qrname="' + esc(name) + '">QR</button> ' : '';
+}
+async function showQrModal(token, name) {
+  const img = await qrImage(token, 10);
+  $('#qrmTitle').textContent = name;
+  $('#qrmBody').innerHTML = '<img alt="QR code" src="' + img + '" style="width:240px;height:240px;image-rendering:pixelated"><div class="muted">Code: <strong>' + esc(token) + '</strong></div>' +
+    '<p class="muted" style="font-size:13px">Download and send this image to the crew (for example on WhatsApp) if their email did not arrive.</p>';
+  $('#qrmDl').href = img;
+  $('#qrmDl').download = 'QR ' + name.replace(/[^\w ]+/g, '').trim() + '.png';
+  $('#qrModal').classList.remove('hidden');
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-qr]');
+  if (b) showQrModal(b.dataset.qr, b.dataset.qrname).catch(err => alert(err.message));
+});
+$('#qrmClose').addEventListener('click', () => $('#qrModal').classList.add('hidden'));
 
 function blButton(crewId, name, on) {
   return '<br><button type="button" class="small' + (on ? '' : ' danger') + '" style="margin-top:4px" data-bl="' + esc(crewId) + '" data-blname="' + esc(name) + '" data-blon="' + (on ? '1' : '') + '">' + (on ? 'Undo blacklist' : 'Blacklist') + '</button>';
@@ -2403,7 +2475,7 @@ function renderCrew() {
   if (!list.length) { $('#crewBody').innerHTML = '<p class="muted">No crew found.</p>'; return; }
   $('#crewBody').innerHTML = '<table class="data"><thead><tr><th>Crew ID</th><th>Photo</th><th>Name</th><th>IC / Passport</th><th>Nationality</th><th>Phone</th><th>WhatsApp username</th><th>Email</th><th>Email status</th><th>T-Shirt</th><th>Languages</th><th>Health</th><th>Dietary</th><th>Bank</th><th>Account No.</th><th>Account holder</th><th>Total jobs</th><th>IC copy</th><th>Signed agreement</th></tr></thead><tbody>' +
     list.map(c => '<tr' + (c.walkin ? ' class="walkin"' : '') + '><td>' + esc(c.crewId) + '</td><td>' + viewLink(c.photoLink) + '</td><td' + (c.walkin ? ' class="redcell"' : '') + '>' + esc(c.fullName) + (c.walkin ? '<br><strong>Walk in: details not complete</strong>' : '') + (c.preferredName ? '<br><span class="muted">' + esc(c.preferredName) + '</span>' : '') +
-      (c.blacklisted ? '<br><span class="tag black">Blacklisted ' + esc(c.blacklistedAt) + '</span><br><span class="muted">' + esc(c.blacklistReason) + '</span>' : '') + blButton(c.crewId, c.fullName, c.blacklisted) +
+      (c.blacklisted ? '<br><span class="tag black">Blacklisted ' + esc(c.blacklistedAt) + '</span><br><span class="muted">' + esc(c.blacklistReason) + '</span>' : '') + '<br>' + qrButton(c.qrToken, c.fullName) + blButton(c.crewId, c.fullName, c.blacklisted).replace(/^<br>/, '') +
       '</td><td>' + esc(c.idNumber) + '</td><td>' + esc(c.nationality) + '</td><td>' + esc(c.phone) + '</td><td>' + esc(c.whatsappUser) + '</td><td' + (c.emailStatus && c.emailStatus !== 'Sent' ? ' class="redcell"' : '') + '>' + esc(c.email) +
       '</td><td' + (c.emailStatus && c.emailStatus !== 'Sent' ? ' class="redcell"' : '') + '>' + esc(c.emailStatus || '') + '<br><button type="button" class="small" data-welcome="' + esc(c.crewId) + '">Resend welcome email</button></td><td>' + esc(c.shirtSize) +
       '</td><td>' + esc(c.languages) + '</td><td>' + esc(c.healthCondition) + '</td><td>' + esc(c.dietary) +
